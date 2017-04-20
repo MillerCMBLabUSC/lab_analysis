@@ -1,0 +1,14 @@
+#PBS -S /bin/bash
+#PBS -q regular
+#PBS -l mppwidth=96
+#PBS -l walltime=00:30:00
+#PBS -N leap_job
+#PBS -e mpi_leap_job.$PBS_JOBID.err
+#PBS -o mpi_leap_job.$PBS_JOBID.out
+#PBS -j oe
+#PBS -A mp107
+#PBS -V
+ 
+cd $PBS_O_WORKDIR
+aprun -n 4 -N 2 ./example.py
+
