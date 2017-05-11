@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-np.set_printoptions(edgeitems=100)
+#from lab_analysis.libs.geometry import coordinates as crd
 
 
 #parameters (either user input or default)
@@ -12,7 +12,7 @@ if response == 'd':
 	e_rng = 100
 	e_stp = 1
 	dt_scn = 1
-	print('\nDefault values:\n  az_0 = 50 deg \n  el_0 = 50 deg \n  az throw = 100 deg \n  el range = 100 deg \n  el step size = 1 deg \n  scan speed = 1 deg/sec')
+	print('Default values:\n  az_0 = 50 deg \n  el_0 = 50 deg \n  az throw = 100 deg \n  el range = 100 deg \n  el step size = 1 deg \n  scan speed = 1 deg/sec')
 if response == 'c':
 	az_0 = float(input('az_0= '))
 	el_0 = float(input('el_0= '))
@@ -20,6 +20,7 @@ if response == 'c':
 	e_rng = float(input('Enter the elevation range: '))
 	e_stp = float(input('Enter the elevation step size: '))
 	dt_scn = float(input('Enter the scan speed in degrees/sec: '))
+
 
 #defining a few useful values
 n_stp = int(e_rng/e_stp) + 1 #number of steps
@@ -30,16 +31,19 @@ a_min = az_0 - (a_thr/2) #min az
 a_max = az_0 + (a_thr/2) #max az
 e_min = el_0 - (e_rng/2) #min el
 e_max = el_0 + (e_rng/2) #max el
+flag = 0 #flag helps to establish zig zag pattern
+
 
 #arrays that the data will be in
 t = np.linspace(0., t_end, t_end/dt)
 az_data = np.empty(int(t_end/dt))
 el_data = np.empty(int(t_end/dt))
-flag = 0
+
 
 #scan sequence
 for i in range (0, n_stp):
 	if i == 0:
+	#first step of the scan: makes sure we're not appending to an empty array
 		az_data = np.linspace(a_min, a_max, a_thr/dt)
 		el_data = np.repeat(e_min, a_thr/dt)
 		az_data = np.append(az_data, np.repeat(a_max, e_stp/dt))
@@ -51,7 +55,8 @@ for i in range (0, n_stp):
                 az_data = np.append(az_data, np.linspace(a_max, a_min, a_thr/dt))
                 el_data = np.append(el_data, np.repeat(e_min + i * e_stp, a_thr/dt))
 		if (e_min + (i+1) * e_stp) > e_max:
-                        break
+		#stops if this step will exceed e_max
+			break
                 else:           
                         az_data = np.append(az_data, np.repeat(a_min, e_stp/dt))
                         el_data = np.append(el_data, np.linspace(e_min + i * e_stp, e_min + (i+1) * e_stp, e_stp/dt))
@@ -62,6 +67,7 @@ for i in range (0, n_stp):
 		az_data = np.append(az_data, np.linspace(a_min, a_max, a_thr/dt))
 		el_data = np.append(el_data, np.repeat(e_min + i * e_stp, a_thr/dt))
 		if (e_min + (i+1) * e_stp) > e_max:
+		#stops if this step will exceed e_max
 			break
 		else:
 			az_data = np.append(az_data, np.repeat(a_max, e_stp/dt))
@@ -69,14 +75,16 @@ for i in range (0, n_stp):
 			flag = 1
 			continue
 
+#lat = 34.02
+#lst = 6.49
+#print crd.hor_to_eq(az_data, el_data, lat, lst)
+
+#print ra_test, dec_test
 
 plt.plot(az_data, el_data, 'b')
 plt.axvline(x = 0, color = 'k', linestyle = '--')
 plt.axhline(y = 0, color = 'k', linestyle = '--')
 plt.show()
-
-
-
 
 
 
