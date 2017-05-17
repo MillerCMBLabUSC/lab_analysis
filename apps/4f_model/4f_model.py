@@ -32,7 +32,7 @@ def bbPower(temp, emis, f1,f2):
 GHz = 1.e9
 ch_freqs = np.array([27.0,39.0,93.0,145.0,233.0,225.0,278.0])*GHz
 ch_fbw = np.array([.222,.462,.376,.276,.322,.267,.162])
-ch_num = -1;
+ch_num = 2;
 
 freq1 = ch_freqs[ch_num] - (ch_freqs[ch_num]*ch_fbw[ch_num])/2
 freq2 = ch_freqs[ch_num] + (ch_freqs[ch_num]*ch_fbw[ch_num])/2
