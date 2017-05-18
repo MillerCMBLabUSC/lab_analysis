@@ -1,7 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
-#from lab_analysis.libs.geometry import coordinates as crd
-
+import ephem
+from lab_analysis.libs.geometry import coordinates as crd
+from datetime import datetime
+np.set_printoptions(edgeitems = 50)
 
 #parameters (either user input or default)
 response = raw_input('For default values, enter d. For custom values, enter c. ')
@@ -75,17 +77,17 @@ for i in range (0, n_stp):
 			flag = 1
 			continue
 
-#lat = 34.02
-#lst = 6.49
-#print crd.hor_to_eq(az_data, el_data, lat, lst)
 
-#print ra_test, dec_test
+usc = ephem.Observer()
+usc.date = datetime.utcnow()
+usc.lon = -118.286926
+usc.lat = 34.019579
 
-plt.plot(az_data, el_data, 'b')
-plt.axvline(x = 0, color = 'k', linestyle = '--')
-plt.axhline(y = 0, color = 'k', linestyle = '--')
-plt.show()
+ra, dec = crd.hor_to_eq(az_data, el_data, usc.lat, usc.sidereal_time())
 
+print ra
+
+print dec
 
 
 
