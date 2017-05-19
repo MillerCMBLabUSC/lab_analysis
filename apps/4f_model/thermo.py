@@ -22,3 +22,7 @@ def weightedSpec(freq,temp,emis):
 def bbPower(temp, emis, f1,f2):
 	power = .5*intg.quad(lambda x: weightedSpec(x,temp,emis), f1, f2)[0]
 	return power
+
+#Spillover efficiency
+def spillEff(D, F, waistFact, freq): 
+	return 1. - np.exp((-np.power(np.pi,2)/2.)*np.power((D/(waistFact*F*(c/freq))),2))
