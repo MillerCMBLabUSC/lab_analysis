@@ -1,0 +1,19 @@
+Optical Element          Power from Sky-Side      Power on Detector        
+                         [pW]                     [pW]                     
+CMB                      0.0000                   0.1182                   
+ATM                      0.5226                   1.0437                   
+Mirror                   4.9597                   0.5296                   
+Mirror                   7.0976                   0.0624                   
+Mirror                   7.3449                   0.0626                   
+Window                   7.5916                   0.1541                   
+IRShaders                8.1121                   0.0091                   
+IRShaders                8.1415                   0.0044                   
+LowPass                  8.1516                   0.0099                   
+Lens                     7.7008                   0.0017                   
+Lens                     7.6225                   0.0001                   
+Aperture                 7.5389                   0.0173                   
+Lens                     3.5011                   0.0002                   
+LowPass                  3.4629                   0.0003                   
+LowPass                  3.2556                   0.0004                   
+LowPass                  3.0609                   0.0000                   
+Detector                 2.8772                   0.0000                   
