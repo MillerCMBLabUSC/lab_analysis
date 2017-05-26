@@ -1,7 +1,7 @@
 import numpy as np
 import thermo as th
 import OpticalElement as opt
-
+import Detector as dt
 
 #########################################################
 #   Input Data 											
@@ -11,31 +11,22 @@ channelFile = expDir + "channels.txt"
 cameraFile = expDir + "camera.txt"
 opticsFile = expDir + "opticalChain.txt"
 atmFile = "Atacama_1000um_60deg.txt"
+
 # Must be 1 or 2. This determines the frequency and is needed to import the proper absorption
+bandID = 1
 
 
-# Gets channel frequency bounds
+# Units and Constants
 GHz = 1.e9 # GHz -> Hz
 pW = 1.e12 # W -> pW
 
-bandID = 1
-
-ch_str = np.loadtxt(channelFile, dtype=np.str)
-band_center = float(ch_str[bandID][2])*GHz #[Hz]
-fbw = float(ch_str[bandID][3]) #fractional bandwidth
-pixSize = float(ch_str[bandID][4])/1000.
-waistFact = float(ch_str[bandID][6])
-det_eff = float(ch_str[bandID][7])
+#Imports detector data 
+det = dt.Detector(channelFile, cameraFile, bandID)
 
 
-flo = band_center*(1 - .5 * fbw) #detector lower bound [Hz]
-fhi = band_center*(1 + .5 * fbw) #detector upper bound [Hz]
-
-##Import camera data
-cam_str = np.loadtxt(cameraFile, dtype=np.str, usecols=[2])
-f_num = float(cam_str[2])
-bath_temp = float(cam_str[2])
-
+##################################################################################################################
+#   Loads Optical Elements
+##################################################################################################################
 
 elements = [] #List of optical elements
 
@@ -43,7 +34,7 @@ elements = [] #List of optical elements
 elements.append(opt.OpticalElement("CMB", 2.725, 1, 1))
 
 
-#Calculation of atmosphere efficiency
+#Atmosphere optical element
 fs, ts = np.loadtxt(atmFile, dtype=np.float, unpack=True, usecols=[0, 3]) #frequency/efficiency pairs from input file
 fs*=GHz # [Hz]
 
@@ -51,19 +42,16 @@ elements.append(opt.OpticalElement("Atm", 273., 0, 0))
 elements[-1].eff = lambda x :  np.interp(x,fs,ts) 
 elements[-1].emis = lambda x : 1 -  np.interp(x,fs,ts) 
 
+# Loads elements from Optical Chain file
+elements += opt.loadOpticalChain(opticsFile, det)
 
-
-#########################################################
-#   Load Optical Elements
-#########################################################
-elements += opt.loadOpticalChain(opticsFile, bandID, band_center,fbw,pixSize, f_num, waistFact)
-
-
+#Inserts HWP at desired position
 hwpIndex = 11
 elements.insert(hwpIndex, opt.OpticalElement("HWP", elements[hwpIndex - 1].temp, 0, 1))
 
+
 ## Detector element
-elements.append(opt.OpticalElement("Detector", .1, 1 - det_eff, det_eff))
+elements.append(opt.OpticalElement("Detector", .1, 1 - det.det_eff, det.det_eff))
 
 
 #########################################################
@@ -73,31 +61,22 @@ incPowers = []
 outPowers = []
 
 N=200
-freqs = np.linspace(flo, fhi, N) #Frequency array
+freqs = np.linspace(det.flo, det.fhi, N) #Frequency array
 UPspecs = [np.zeros(N)]  #Unpolarized spectrum before each element
 PPspecs = [np.zeros(N)] #Polarized spectrum before each element
 
 # We want to propagate the spectrum from element to element
 for i in range(len(elements)):
 	elem = elements[i]
+
+
 	#Black body spectrum of the current element
 	elemUPSpec = th.weightedSpec(freqs,elem.temp,elem.emis)
 	elemPPSpec = th.weightedSpec(freqs,elem.temp,elem.pEmis)
 
-	if callable(elem.eff):
-		upEff = map(elem.eff, freqs)
-	else:
-		upEff = elem.eff
-
-	if callable(elem.pEff):
-		ppEff = map(elem.pEff, freqs)
-	else:
-		ppEff = elem.pEff
-	if callable(elem.ip):
-		ip = map(elem.ip, freqs)
-	else:
-		ip = np.full(N,elem.ip)
-
+	upEff = map(elem.eff, freqs)
+	ppEff = map(elem.pEff, freqs)
+	ip =    map(elem.ip, freqs)
 
 	if (i < hwpIndex):
 		ups = UPspecs[-1] * upEff * map(lambda x : 1 - x, ip)  + elemUPSpec
@@ -106,21 +85,19 @@ for i in range(len(elements)):
 		ups = UPspecs[-1]*upEff  + elemUPSpec
 		pps = PPspecs[-1]*ppEff 
 
-	# ups = UPspecs[-1]*upEff  + elemUPSpec
-	# pps = PPspecs[-1]*ppEff 
 
 	UPspecs.append(ups)
 	PPspecs.append(pps)
 	outPowers.append(.5 * np.trapz(elemUPSpec, freqs))
 
-incUP = map(lambda x : .5*np.trapz(x, freqs), UPspecs)
-incPP = map(lambda x : .5*np.trapz(x, freqs), PPspecs)
+incUP = map(lambda x : th.powFromSpec(freqs, x), UPspecs)
+incPP = map(lambda x : th.powFromSpec(freqs, x), PPspecs)
 
 
 #########################################################
 #   Print table
 #########################################################
-print "bandID: %d \t freq: %.2f GHz"%(bandID, band_center/GHz)
+print "bandID: %d \t freq: %.2f GHz"%(det.bid, det.band_center/GHz)
 print "Name\t\t\tOutput power(pW)\tIncident UP (pW) \tIncident PP (pW)"
 print "-"*70
 

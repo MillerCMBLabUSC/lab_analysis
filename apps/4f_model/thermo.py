@@ -33,10 +33,12 @@ def weightedSpec(freq,temp,emis):
 	AOmega = (c/freq)**2
 	return (AOmega*bbSpec(freq,temp,emis))
 
-
 def bbPower(temp, emis, f1,f2):
 	power = .5*intg.quad(lambda x: weightedSpec(x,temp,emis), f1, f2)[0]
 	return power
+
+def powFromSpec(freqs, spec):
+	return .5 * np.trapz(spec, freqs)
 
 #Spillover efficiency
 def spillEff(D, F, waistFact, freq): 
