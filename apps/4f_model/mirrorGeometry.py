@@ -67,7 +67,7 @@ for x in X:
 
 
 
-print np.rad2deg(angleSum1 / i), np.rad2deg(angleSum2 / i)
+print "Mirror 1: %f deg\nMirror 2: %f deg" %(np.rad2deg(angleSum1 / i), np.rad2deg(angleSum2 / i))
 
 
 
