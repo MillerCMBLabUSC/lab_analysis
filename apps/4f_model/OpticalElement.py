@@ -43,10 +43,19 @@ def loadOpticalChain(opticsFile,det):
 	opt_string = np.loadtxt(opticsFile, dtype = np.str,usecols=[0,1,6,7,8,10])
 	# print opt_string
 
-	chi = [np.deg2rad(25.7312), np.deg2rad(19.5982)]
+	chi = map(np.deg2rad, [25.7312, 19.5982])
 
 	lensIP = .0004
+	# lensIP = .00005
+	
 	mirrorNum = 0
+
+	#### For Ebex:
+	# flensIP = [.017, .02]
+	# chi = map(np.deg2rad, [31.299, 20.299])
+
+	#For Polarbear
+	# chi = [np.deg2rad(32.5)]
 
 
 	for i in range(1, len(opt_string)):
@@ -54,11 +63,12 @@ def loadOpticalChain(opticsFile,det):
 		name = opt_string[i][0]
 		temp = __float(opt_string[i][1])
 
-		# if name == "Mirror" and mirrorNum >= 2:
-		# 	continue
+		if name == "Mirror" and mirrorNum >= 2:
+			continue
 
 		if name =="Aperture":
 			eff = th.spillEff(det.pixSize, det.f_num, det.waistFact, det.band_center)
+			print eff
 			absorb = 1 - eff
 			spill = 0
 			spillTemp = 0
@@ -84,6 +94,10 @@ def loadOpticalChain(opticsFile,det):
 
 		if name == "Lens":
 			elements[-1].ip = _toFunc(lensIP)
+
+		if name=="FieldLens":
+			elements[-1].ip = _toFunc(flensIP[det.bid - 1])
+
 
 
 	return elements

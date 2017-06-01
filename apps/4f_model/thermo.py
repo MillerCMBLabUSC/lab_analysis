@@ -54,4 +54,4 @@ def powFrac(T1, T2, f1, f2):
 
 def getLambdaOpt(nu, chi):
 	geom = (1 / np.cos(chi) - np.cos(chi))
-	return - geom * np.sqrt(4 * PI * eps0 * rho * nu)
+	return - 2 * geom * np.sqrt(4 * PI * eps0 * rho * nu)

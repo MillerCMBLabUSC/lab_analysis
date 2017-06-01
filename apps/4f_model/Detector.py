@@ -11,7 +11,6 @@ class Detector:
 		ch_str = np.loadtxt(channelFile, dtype=np.str)
 		self.band_center = float(ch_str[bandID][2])*GHz #[Hz]
 		self.fbw = float(ch_str[bandID][3]) #fractional bandwidth
-		
 		self.pixSize = float(ch_str[bandID][4])/1000.
 		self.waistFact = float(ch_str[bandID][6])
 		self.det_eff = float(ch_str[bandID][7])

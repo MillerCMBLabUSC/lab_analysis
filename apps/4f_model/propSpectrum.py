@@ -26,7 +26,7 @@ def propSpec(optElements, det, hwpIndex):
 
 		if (i < hwpIndex):
 			ups = UPspecs[-1] * upEff * map(lambda x : 1 - x, ip)  + elemUPSpec
-			pps = PPspecs[-1]*ppEff + UPspecs[-1]*ip + elemPPSpec 
+			pps = PPspecs[-1]*ppEff + UPspecs[-1]*ip * upEff + elemPPSpec 
 		else:
 			ups = UPspecs[-1]*upEff  + elemUPSpec
 			pps = PPspecs[-1]*ppEff 
