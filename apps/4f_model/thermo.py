@@ -16,6 +16,8 @@ eps0 = 8.85e-12
 #Resistivity of the mirror
 rho=2.417e-8
 
+Tcmb = 2.725
+
 
 #Calculates total black body power for a given temp and emis.
 def bbSpec(freq,temp,emis):
@@ -55,3 +57,18 @@ def powFrac(T1, T2, f1, f2):
 def getLambdaOpt(nu, chi):
 	geom = (1 / np.cos(chi) - np.cos(chi))
 	return - 2 * geom * np.sqrt(4 * PI * eps0 * rho * nu)
+
+def aniPowSpec(emissivity, freq, temp=None):
+        if temp == None:
+            temp = Tcmb
+
+        occ = 1.0/(np.exp(h*freq/(temp*kB)) - 1)
+
+        return ((h**2)/kB)*emissivity*(occ**2)*((freq**2)/(temp**2))*np.exp((h*freq)/(kB*temp))
+
+
+def dPdT(elements, det):
+	totalEff = lambda f : reduce((lambda x,y : x * y), map(lambda e : e.eff(f), elements))
+
+	return intg.quad(lambda x: aniPowSpec(totalEff(x), x, Tcmb), det.flo, det.fhi)[0]
+	

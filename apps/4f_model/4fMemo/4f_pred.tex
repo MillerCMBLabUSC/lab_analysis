@@ -14,7 +14,19 @@
 \usepackage[final]{pdfpages}
 
 
-\bibliographystyle{ieee6}
+\usepackage[
+backend=bibtex,
+style=numeric,
+citestyle=numeric,
+maxbibnames=5,
+sorting=none]{biblatex}
+
+\bibliography{4f_pred} 
+
+\makeatletter
+\def\blx@maxline{77}
+\makeatother
+
 
 \graphicspath{{images/}}
 
@@ -56,10 +68,12 @@
 \author{Jack Lashner, Joy Didier}
 
 
+
+
 \begin{document}
 \maketitle
 \section*{Summary}
-\tab In this memo we will explain our method of calculating the $n=4$ HWPSS. 
+\tab In this memo we will explain our method of calculating the $n=4$ HWPSS, $\AI$. 
 We will describe our current estimation for the polarized emission for the mirrors and $I\rightarrow P$ coefficients for the lenses. 
 We will show our results for a standard optical chain, and also our results for the EBEX and POLARBEAR optical chains,
 comparing with the measured HWPSS of those two experiments. 
@@ -68,9 +82,14 @@ comparing with the measured HWPSS of those two experiments.
 
 \subsection*{Mirrors}
 \tab From the Polarbear analysis \cite{takakura_performance_2017}  we can see that the IP leakage coefficient and the polarized emissivity of the mirrors are both given by
-\[\lo(\nu) = 2 \sqrt{4 \pi \epsilon_0 \nu \rho} (\sec\chi - \cos\chi).\]
+\[\lo(\nu, \chi) = 2 \sqrt{4 \pi \epsilon_0 \nu \rho} (\sec\chi - \cos\chi).\]
 where $\rho = 2.417\times 10^{-8} \; \ohm \cdot \t{m}$ is the resistivity of the metal, and $\chi$ is the incident angle of the light.
-Here we are including the factor of 2 in the Hagen-Rubens formula which gives a better fit to data
+Here we are including the factor of 2 in the Hagen-Rubens formula which gives a better fit to data.
+
+\tab Our total polarized power from each mirror with incident angle $\chi$ will then be
+\[
+P^{p} = \int_{\nu_\t{low}}^{\nu_\t{high}} \lo(\nu, \chi) B(\nu, 300 \t{ K}) d\nu.
+\]
 
 
 \tab For the time being we are ignoring the curvature of the mirrors, and using the geometry specified in the CCAT optical design document.
@@ -88,16 +107,36 @@ This simulation only takes into account the contribution for the lenses (of whic
   \label{fig:IP-array}
 \end{figure}
 
+\subsection*{Filters}
+\tab Though it is not currently included in our calculation, it is also necessary to consider \ip coming from the mesh filters. 
+The $s$ and $p$ transmission of our filters are given in \cite{pisano_polarisation_2006} for incident angles of 
+$\chi = 0\degree \t{ and } \chi = 15\degree$ for frequencies above 150 GHz.
+From the paper alone, we are able to see that the $s$ and $p$ transmissions are indistinguishable at 0\degree, 
+and at 15\degree the maximum \ip in our desired frequency range is about .1\%.
+
+\tab This is much more than we actually expect, since the maximum incident angle in our current optical setup is 
+around 7.5\degree, and this only occurs at the very edges of the beam.
+
+Additional work is required to come up with a more realistic upper bound on the \ip.
+
+
 \subsection*{Propagation}
-\tab Using this information we may propagate the power spectrum weighted by the optical throughput, $A\Omega$, through each element.
-In this first iteration, if $P_{n}^{u/p}(\nu)$ is the unpolarized / polarized power spectrum on the $n^\t{th}$ optical element, 
-we calculate the power spectrum on the $(n+1)$ element as
+\tab Using this information we may propagate the power through each element.
+In this first iteration, if $P_{n}^{u/p}(\nu)$ is the unpolarized / polarized incident power on the $n^\t{th}$ optical element, 
+we calculate the incident power on the $(n+1)^\t{th}$ element as
 \begin{align}
 P_{n+1}^u(\nu) &= P_n^u(\nu) \eta_n^u(\nu) (1 - \eta_n^{\t{ip}}(\nu)) + A\Omega(\nu) \; \varepsilon_n^u(\nu) B(\nu,T_n)\\
 P_{n+1}^p(\nu) &= P_n^u(\nu) \eta_n^u(\nu) \eta_n^{\t{ip}}(\nu) +  P_n^p(\nu) \eta_n^p(\nu) + A\Omega(\nu) \; \varepsilon_n^p(\nu) B(\nu,T_n)
 \end{align}
 where $\eta_n^{u/p}$ is the unpolarized/polarized efficiency of element $n$, $\eta_n^\t{ip}$ is the \ip coefficient, $\varepsilon_n^{u/p}$
 is the unpolarized/polarized emissivity, and $B(\nu,T)$ is the spectral brightness.
+
+\tab The absorption and reflection coefficients are given in the optical chain file and shown in Table 
+\ref{table:SO_OpticalChain}. Additional info such as scattering and spillover coefficients are also given.
+Because elements are in thermal equilibrium, the absorption is equal to the emissivity $\varepsilon$.
+The only exception to this is the primary mirror, where spillover onto heated surfaces adds additional emissivity.
+The efficiency $\eta$ is then given by subtracting each coefficient from 1:
+\[\eta_n = 1 - \t{abs}_n - \t{refl}_n - \t{scatt}_n\]
 
 \tab After the HWP, additional polarized signal no long contributes to our measurement, 
 so the propagation of the polarized power simply becomes
@@ -136,17 +175,17 @@ The HWPSS seen by the detector for each HWP position is shown in Table \ref{tabl
 	\hline
 	 Name 		& Temp (K)	& Abs (150 GHz) & Abs (250 GHz) & Reflection \\ \hline
 	 Mirror 	&	273		& 0.002 & .005 & 0 \\
-	 \hline \multicolumn{5}{|c|}{POLARBEAR HWP}\\ \hline
+	 \hline \multicolumn{5}{|c|}{POLARBEAR HWP }\\ \hline
 	 Mirror 	&	273		& 0.002 & .005 & 0 \\
 	 Window 	&	265		& 0.005 & .010 & 0.01 \\
-	 \hline \multicolumn{5}{|c|}{HWP pos 1}\\ \hline
+	 \hline \multicolumn{5}{|c|}{HWP pos 1 (80 K)}\\ \hline
 	 IRShaders 	&	80		& 0.001 & .001 & 0 \\
 	 IRShaders 	&	40		& 0.001 & .001 & 0 \\
 	 LowPass 	&	10		& 0.010 & .010 & 0.05 \\
 	 Lens 		&	4.5		& 0.007 & .011 & 0.006 \\
-	 \hline \multicolumn{5}{|c|}{HWP pos 2}\\ \hline
+	 \hline \multicolumn{5}{|c|}{HWP pos 2 (4 K)}\\ \hline
 	 Lens 		&	1.2		& 0.007 & .011 & 0.006 \\
-	 \hline \multicolumn{5}{|c|}{HWP pos 3}\\ \hline
+	 \hline \multicolumn{5}{|c|}{HWP pos 3 (4 K?)}\\ \hline
 	 Aperture 	&	1.2		&  NA  &  NA  & NA \\
 	 Lens 		&	1.2		& 0.007 & .011 & 0.006 \\
 	 LowPass 	&	1.2		& 0.010 & .010 & 0.050 \\
@@ -165,23 +204,37 @@ Shown is also the three HWP positions which we have considered, and the HWP posi
 
 
 \begin{table}
-\begin{center}
+\centering
 \begin{tabular}{ |c|c|c|c| } 
 	\hline
 	 & \multicolumn{3}{|c|}{HWPSS (pW)}\\
 	\hline
-	freq (GHz) & pos 1 	& pos 2 & pos 3 \\ \hline
+	freq(GHz) & pos 1 	& pos 2 & pos 3 \\ \hline
 	27  & .0006, .0006 	 & .00061, .00061 & .000727, .000617 \\
 	39  & .00275, .00275 & .00280, .00280 & .00348, .00285	 \\
 	93  & .00838, .00838 & .00849, .00849 & .0100, .00859 	 \\
-	145 & .0206, .00206  & .0208, .0208   & .0243, .0211 	 \\
+	145 & .0206, .0206  & .0208, .0208   & .0243, .0211 	 \\
 	233 & .0688, .0688   & .0698, .0698   & .0846, .0708 	 \\
 	\hline	
 \end{tabular}
-\end{center}
+
+\begin{tabular}{ |c|c|c|c| } 
+	\hline
+	 & \multicolumn{3}{|c|}{HWPSS (K$_\t{CMB}$)}\\
+	\hline
+	freq (GHz) & pos 1 	& pos 2 & pos 3 \\ \hline
+	27  & .075, .075 	 & .07625, .07625 & .090875, .077125 \\
+	39  & .0951, .0951 & .0969, .0969 & .1204, .1816	 \\
+	93  & .1772, .1772 & .1795, .1795 & .2115, .00859 	 \\
+	145 & .2971, .2971  & .3000, .3000   & .3504, .3043 	 \\
+	233 & .8213, .8213   & .8333, .8333   & 1.010, .8452 	 \\
+	\hline	
+\end{tabular}
+
 \caption{ Calculated $\AI$ for the optical chain in table \ref{table:SO_OpticalChain} at the three positions shown.
 In each cell, the first number is $\AI$ for a detector towards the edge of the array, and the second number 
-is for a detector towards the center. }
+is for a detector towards the center. We present the power in both pW and K$_\t{CMB}$
+}
 \label{table:SO_powers}
 \end{table}
 
@@ -201,7 +254,7 @@ This is consistent with the average measurements given in Table 1 of \cite{takak
 
 \subsection*{EBEX}
 
-\tab For our comparison with EBEX we use the optical chain given in Christopher Geach's memo on May 1st \cite{geach_2017}.
+\tab For our comparison with EBEX we use the optical chain given in Christopher Geach's memo on May 1st.
 In his analysis Christopher calculates the average polarization fraction across the curved mirror
 \[p(\chi) = \frac{\sin^2 \chi}{1 + \cos^2 \chi}\]
 to be 15.6\% for the primary mirror and 6.4\% for the secondary mirror. 
@@ -216,7 +269,7 @@ Decreasing this coefficient to 1.7\% gives us $\AI = .154 \t{ pW}$ which is much
 
 
 
-\bibliography{4f_pred} 
+\printbibliography
 
 
 \end{document}

@@ -68,7 +68,6 @@ def loadOpticalChain(opticsFile,det):
 
 		if name =="Aperture":
 			eff = th.spillEff(det.pixSize, det.f_num, det.waistFact, det.band_center)
-			print eff
 			absorb = 1 - eff
 			spill = 0
 			spillTemp = 0
