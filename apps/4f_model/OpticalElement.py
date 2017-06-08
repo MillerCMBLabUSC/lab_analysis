@@ -36,6 +36,18 @@ def __float(val, bid = None, unit=1.0):
 			return 0
 
 
+def loadAtm(atmFile):
+
+	fs, ts = np.loadtxt(atmFile, dtype=np.float, unpack=True, usecols=[0, 3]) #frequency/efficiency pairs from input file
+	fs*=GHz # [Hz]
+
+	e = OpticalElement("Atm", 273., .0, 0)
+	e.eff = lambda x :  np.interp(x,fs,ts) 
+	e.emis = lambda x : 1 -  np.interp(x,fs,ts) 
+
+	return e
+
+
 
 def loadOpticalChain(opticsFile,det):
 
@@ -87,7 +99,8 @@ def loadOpticalChain(opticsFile,det):
 		#Edits can be made in specific cases once the element is created
 		if name == "Mirror" and mirrorNum < len(chi):
 			c = chi[mirrorNum]
-			elements[-1].pEmis = (lambda x : -th.getLambdaOpt(x, c))
+			
+			elements[-1].pEmis = (lambda x : th.getLambdaOpt(x, c))
 			elements[-1].ip =    (lambda x : -th.getLambdaOpt(x, c))
 			mirrorNum += 1
 

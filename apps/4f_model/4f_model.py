@@ -32,24 +32,15 @@ def runModel(expDir, bandID, writeFile = False):
 	#CMB optical element
 	elements.append(opt.OpticalElement("CMB", 2.725, 1, 1))
 
-
-
-	#Atmosphere optical element
-	fs, ts = np.loadtxt(atmFile, dtype=np.float, unpack=True, usecols=[0, 3]) #frequency/efficiency pairs from input file
-	fs*=GHz # [Hz]
-
-	elements.append(opt.OpticalElement("Atm", 273., .0, 0))
-	elements[-1].eff = lambda x :  np.interp(x,fs,ts) 
-	elements[-1].emis = lambda x : 1 -  np.interp(x,fs,ts) 
-
-
+	#Atm optical element
+	elements.append(opt.loadAtm(atmFile))
 
 	# Loads elements from Optical Chain file
 	elements += opt.loadOpticalChain(opticsFile, det)
 
 
 	#Inserts HWP at desired position
-	hwpIndex = 10     #-----SO
+	hwpIndex = 9     #-----SO
 	# hwpIndex = 10     #-----Ebex
 	# hwpIndex = 3       #-----pb
 
@@ -107,7 +98,7 @@ def runModel(expDir, bandID, writeFile = False):
 
 
 if __name__=="__main__":
-	runModel("Experiments/V2_dichroic/LF_45cm_3waf_silicon/LargeTelescope/", 2 , False)
+	runModel("Experiments/V2_dichroic/HF_45cm_3waf_silicon/LargeTelescope/", 1 , False)
 	# fileDir = "Experiments/V2_dichroic"
 	# expDirs  = [sorted(gb.glob(x+'/*')) for x in sorted(gb.glob(fileDir))]
 	
