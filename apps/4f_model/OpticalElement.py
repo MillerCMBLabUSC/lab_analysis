@@ -99,7 +99,7 @@ def loadOpticalChain(opticsFile,det):
 		#Edits can be made in specific cases once the element is created
 		if name == "Mirror" and mirrorNum < len(chi):
 			c = chi[mirrorNum]
-			
+
 			elements[-1].pEmis = (lambda x : th.getLambdaOpt(x, c))
 			elements[-1].ip =    (lambda x : -th.getLambdaOpt(x, c))
 			mirrorNum += 1

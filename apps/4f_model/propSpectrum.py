@@ -2,38 +2,60 @@ import numpy as np
 import thermo as th
 
 
+
 #Propagates power spectrum of an optical chain
-def propSpec(optElements, det, hwpIndex):
+def A4Prop(optElements, det, hwpIndex):
 
 	N = 400 #subdivision of frequency range
 	freqs = np.linspace(det.flo, det.fhi, N) #Frequency array
-	UPspecs = [np.zeros(N)]  #Unpolarized spectrum before each element
-	PPspecs = [np.zeros(N)] #Polarized spectrum before each element
+	specs = [np.zeros(N)]  #Unpolarized spectrum before each element
 
-	outPowers = []
+	#U/P output powers seen by detector for each element.
+	UPout = []
+	PPout = []
 
 	for i in range(len(optElements)):
 		elem = optElements[i]
 
 		#Unpolarized and polarized spectrum of the element
-		elemUPSpec = th.weightedSpec(freqs,elem.temp,elem.emis)
-		elemPPSpec = th.weightedSpec(freqs,elem.temp,elem.pEmis)
+		UPEmitted = th.weightedSpec(freqs,elem.temp,elem.emis)
+		UPtrans = specs[-1] * map(elem.eff, freqs)
 
+		#Polarized emitted power and IP conversion power
+		PPEmitted = th.weightedSpec(freqs,elem.temp,elem.pEmis)
+		# PPEmitted = np.zeros(N)
+		ipPower = specs[-1]*map(elem.ip, freqs) * map(elem.eff, freqs) 
 
-		upEff = map(elem.eff, freqs) #Unpolarized efficiency of element for each frequency
-		ppEff = map(elem.pEff, freqs) # Polarized efficiency for each frequency
-		ip =    map(elem.ip, freqs) #IP for each frequency
+		# We don't care about pp created after HWP
+		if i >= hwpIndex:
+			PPEmitted = np.zeros(N)
+			ipPower   = np.zeros(N)
 
-		if (i < hwpIndex):
-			ups = UPspecs[-1] * upEff * map(lambda x : 1 - x, ip)  + elemUPSpec
-			pps = PPspecs[-1]*ppEff + UPspecs[-1]*ip * upEff + elemPPSpec 
+		#Total U/P power introduced by each element
+		UPTotal = UPEmitted - ipPower
+		PPTotal = PPEmitted + ipPower
+
+		# Calculates the total efficiency of everything on detector side of element
+
+		effs = lambda f : map(lambda x : x.eff(f), optElements[i+1:])
+		peffs = lambda f : map(lambda x : x.pEff(f), optElements[i+1:])
+		if len(effs(det.band_center)) > 0:
+			cumEff = lambda f : reduce((lambda x, y: x*y), effs(f))
+			cumPEff = lambda f : reduce((lambda x, y: x*y), effs(f))
 		else:
-			ups = UPspecs[-1]*upEff  + elemUPSpec
-			pps = PPspecs[-1]*ppEff 
+			cumEff = lambda f : 1
+			cumPEff = lambda f : 1
 
+		#Power spectrum seen by the detector coming from this element
+		detUPspec = cumEff(freqs) * UPTotal
+		detPPspec = cumEff(freqs) * PPTotal
 
-		UPspecs.append(ups)
-		PPspecs.append(pps)
-		outPowers.append(.5 * np.trapz(elemUPSpec, freqs))
+		# Total Power seen by the detector coming from this element.
+		detUP = abs(.5 * th.powFromSpec(freqs, detUPspec))  # 1/2 because we are goint UP -> PP
+		detPP = abs(th.powFromSpec(freqs, detPPspec))
 
-	return freqs, UPspecs, PPspecs, outPowers
+		specs.append(UPTotal + UPtrans)
+		UPout.append(detUP)
+		PPout.append(detPP)
+
+	return freqs, specs, UPout, PPout

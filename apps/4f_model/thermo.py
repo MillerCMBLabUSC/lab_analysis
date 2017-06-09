@@ -40,7 +40,7 @@ def bbPower(temp, emis, f1,f2):
 	return power
 
 def powFromSpec(freqs, spec):
-	return .5 * np.trapz(spec, freqs)
+	return np.trapz(spec, freqs)
 
 #Spillover efficiency
 def spillEff(D, F, waistFact, freq): 
