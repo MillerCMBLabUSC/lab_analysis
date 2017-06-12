@@ -18,8 +18,6 @@ def runModel(expDir, bandID, writeFile = False):
 	atmFile = "Atacama_1000um_60deg.txt"
 
 
-
-
 	# Units and Constants
 	GHz = 1.e9 # GHz -> Hz
 	pW = 1.e12 # W -> pW
@@ -41,11 +39,10 @@ def runModel(expDir, bandID, writeFile = False):
 	# Loads elements from Optical Chain file
 	elements += opt.loadOpticalChain(opticsFile, det)
 
-
 	#Inserts HWP at desired position
-	hwpIndex = 9     #-----SO
-	# hwpIndex = 10     #-----Ebex
-	# hwpIndex = 3       #-----pb
+	hwpIndex = 8    	#-----SO
+	# hwpIndex = 10    	#-----Ebex
+	# hwpIndex = 3 		#-----pb
 
 
 	elements.insert(hwpIndex, opt.OpticalElement("HWP", elements[hwpIndex - 1].temp, 0, 1))
@@ -81,9 +78,7 @@ def runModel(expDir, bandID, writeFile = False):
 	if writeFile:
 		fname = expDir + "%dGHz_opticalPowerTable.txt"%(det.band_center/GHz)
 		f = open(fname, 'w')
-
 		f.write( outputString)
-
 		f.close()
 
 	return None
@@ -91,12 +86,12 @@ def runModel(expDir, bandID, writeFile = False):
 
 if __name__=="__main__":
 	# runModel("Experiments/V2_dichroic/HF_45cm_3waf_silicon/LargeTelescope/", 1 , False)
-	fileDir = "Experiments/V2_dichroic"
+	fileDir = "Experiments/V2_dichroic/45cm"
 	expDirs  = [sorted(gb.glob(x+'/*')) for x in sorted(gb.glob(fileDir))]
 	
 	for e in expDirs[0]:
 		wf = True
-
+		print e
 		runModel(e + "/LargeTelescope/", 1, writeFile = wf)
 		runModel(e + "/LargeTelescope/", 2, writeFile = wf)
 		print "*" * 80

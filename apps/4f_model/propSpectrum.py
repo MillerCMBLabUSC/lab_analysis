@@ -1,6 +1,10 @@
 import numpy as np
 import thermo as th
 
+GHz = 1.e9 # GHz -> Hz
+pW = 1.e12 # W -> pW
+
+
 
 
 #Propagates power spectrum of an optical chain
@@ -10,20 +14,22 @@ def A4Prop(optElements, det, hwpIndex):
 	freqs = np.linspace(det.flo, det.fhi, N) #Frequency array
 	specs = [np.zeros(N)]  #Unpolarized spectrum before each element
 
+	# pEmitTot = 0
+	# pIPTot = 0
+
 	#U/P output powers seen by detector for each element.
 	UPout = []
 	PPout = []
 
 	for i in range(len(optElements)):
 		elem = optElements[i]
-
+		
 		#Unpolarized and polarized spectrum of the element
 		UPEmitted = th.weightedSpec(freqs,elem.temp,elem.emis)
 		UPtrans = specs[-1] * map(elem.eff, freqs)
 
 		#Polarized emitted power and IP conversion power
 		PPEmitted = th.weightedSpec(freqs,elem.temp,elem.pEmis)
-		# PPEmitted = np.zeros(N)
 		ipPower = specs[-1]*map(elem.ip, freqs) * map(elem.eff, freqs) 
 
 		# We don't care about pp created after HWP
@@ -46,9 +52,14 @@ def A4Prop(optElements, det, hwpIndex):
 			cumEff = lambda f : 1
 			cumPEff = lambda f : 1
 
+
+		# pEmitTot += abs(th.powFromSpec(freqs, cumPEff(freqs) * PPEmitted))
+		# pIPTot += abs(th.powFromSpec(freqs, cumPEff(freqs) * ipPower))
+
+
 		#Power spectrum seen by the detector coming from this element
 		detUPspec = cumEff(freqs) * UPTotal
-		detPPspec = cumEff(freqs) * PPTotal
+		detPPspec = cumPEff(freqs) * PPTotal
 
 		# Total Power seen by the detector coming from this element.
 		detUP = abs(.5 * th.powFromSpec(freqs, detUPspec))  # 1/2 because we are goint UP -> PP
@@ -57,5 +68,7 @@ def A4Prop(optElements, det, hwpIndex):
 		specs.append(UPTotal + UPtrans)
 		UPout.append(detUP)
 		PPout.append(detPP)
+
+
 
 	return freqs, specs, UPout, PPout

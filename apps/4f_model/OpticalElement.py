@@ -1,6 +1,6 @@
 import numpy as np
 import thermo as th
-
+from scipy import interpolate
 
 
 # Units and Constants
@@ -34,6 +34,24 @@ def __float(val, bid = None, unit=1.0):
 			return unit*float(np.array(eval(val))[bid-1])
 		except:
 			return 0
+def loadHWP(hwpDir, temp, det):
+
+	## Get closest hwp frequency to the band center
+	bc = det.band_center/GHz
+	posFreqs = [30,40,90,150,220,230,280]
+	hwpFreq = reduce(lambda x, y: (x if (abs(x - bc) < abs(y - bc)) else y), posFreqs)
+	# Import mueller data file
+	muellerDir = "Mueller_AR/"
+	muellerFile = muellerDir +  "Mueller_V2_nu%.1f_no3p068_ne3p402_ARcoat_thetain0.0.txt"%(hwpFreq)
+
+	#Frequency, T, Rho
+	f, t, r = np.loadtxt(muellerFile, dtype=np.float, unpack=True, usecols=[0, 1, 2])
+	trans = interpolate.interp1d(f, t, kind = "linear")
+	rho = 	interpolate.interp1d(f, r, kind = "linear")
+	e = OpticalElement("HWP", temp, 0, trans, ip = rho, pEmis = lambda x : -rho(x))
+
+	return e
+
 
 
 def loadAtm(atmFile):

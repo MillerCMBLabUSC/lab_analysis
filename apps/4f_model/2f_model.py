@@ -26,9 +26,6 @@ def f2Model(expDir, writeFile = False):
 
 	hwpIndex = 9
 
-
-
-
 	outString = ""
 	outString +=  "bid\tf\t\tHWP_f\ta2 Ave\t\tA2\t\t\tA2\n"
 	outString +=  "[]\t[GHz]\t[GHz]\t[]\t\t\t[pW]\t\t[Kcmb]\n"
@@ -52,6 +49,9 @@ def f2Model(expDir, writeFile = False):
 		elements.append(opt.OpticalElement("Detector", .1, 1 - det.det_eff, det.det_eff))
 
 
+
+
+
 		## Get closest hwp frequency to the band center
 		bc = det.band_center/GHz
 		posFreqs = [30,40,90,150,220,230,280]
@@ -61,6 +61,11 @@ def f2Model(expDir, writeFile = False):
 		muellerFile = muellerDir +  "Mueller_V2_nu%.1f_no3p068_ne3p402_ARcoat_thetain0.0.txt"%(hwpFreq)
 
 		f, r = np.loadtxt(muellerFile, dtype=np.float, unpack=True, usecols=[0, 2])
+
+
+		e = opt.loadHWP(muellerDir, elements[hwpIndex - 1].temp, det)
+
+
 
 
 		#Interpolates a2 from data
@@ -74,17 +79,18 @@ def f2Model(expDir, writeFile = False):
 			plt.savefig(expDir + "%.1fGHz_a2.pdf"%(det.band_center/GHz))
 			plt.clf()
 
+
 		# Gets average a2 value
 		a2Ave = intg.simps(y, x=x)/(det.fhi - det.flo)
 
 		#Inserts HWP at hwpIndex
-		elements.insert(hwpIndex, opt.OpticalElement("HWP", elements[hwpIndex - 1].temp, 0, 1))
-
+		# elements.insert(hwpIndex, opt.OpticalElement("HWP", elements[hwpIndex - 1].temp, 0, 1))
+		elements.insert(hwpIndex, e)
 
 		pW_per_Kcmb = th.dPdT(elements, det)*pW
 
 
-		freqs, UPspecs, _, _ = ps.propSpec(elements, det, hwpIndex)
+		freqs, UPspecs, _, _ = ps.A4Prop(elements, det, hwpIndex)
 
 
 		effs = lambda f : map(lambda x : x.eff(f), elements[hwpIndex+1:])
@@ -92,14 +98,16 @@ def f2Model(expDir, writeFile = False):
 
 		# Incident power on the HWP
 		hwpInc = UPspecs[hwpIndex]
-		detIp = UPspecs[hwpIndex] * rho(freqs) * cumEff(freqs)
+		detIp = hwpInc * elements[hwpIndex].ip(freqs) * cumEff(freqs) 
+		# Polarized emission of HWP
+		hwpEmis = th.weightedSpec(freqs,elements[hwpIndex].temp, elements[hwpIndex].pEmis) * cumEff(freqs)
+		print elements[hwpIndex].ip(det.band_center)
 
-		hwpEmis = -th.weightedSpec(freqs,elements[hwpIndex].temp, rho) * cumEff(freqs)
 
 		#2f power at the detector
 		det2FPow = detIp + hwpEmis
 		#Total A2 (W)
-		A2 = np.trapz(det2FPow, freqs)
+		A2 = abs(np.trapz(det2FPow, freqs))
 
 
 
@@ -118,9 +126,9 @@ def f2Model(expDir, writeFile = False):
 
 
 if __name__=="__main__":
-	f2Model("Experiments/V2_dichroic/HF_45cm_3waf_silicon/LargeTelescope/" , True)
+	f2Model("Experiments/V2_dichroic/45cm/HF_45cm_3waf_silicon/LargeTelescope/" , True)
 	
-	# fileDir = "Experiments/V2_dichroic"	
+	# fileDir = "Experiments/V2_dichroic/45cm"	
 	# expDirs  = [sorted(gb.glob(x+'/*')) for x in sorted(gb.glob(fileDir))]
 	
 	# for e in expDirs[0]:
