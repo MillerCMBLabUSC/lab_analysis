@@ -34,7 +34,7 @@ class OpticalElement:
 		freqs, temps, trans = np.loadtxt(atmFile, dtype=np.float, unpack=True, usecols=[0, 2, 3]) #frequency/efficiency pairs from input file
 		freqs*=GHz # [Hz]
 
-
+		#Reads Rayleigh Jeans temperature from file and takes average
 		tempF = interpolate.interp1d(freqs, temps, kind = "linear")
 		x = np.linspace(det.flo, det.fhi, 400)
 		y = tempF(x)
@@ -97,7 +97,8 @@ class OpticalElement:
 
 	def Emis(self, freq):
 		if self.name == "Atm":
-			return 1 - np.interp(freq,self.fs,self.ts) 
+			# Returns 1 because we are using Rayleigh Jeans temperature
+			return 1
 		if self.name == "Aperture":
 			return (1 - self.Eff(freq) + self.spill * th.powFrac(self.spillTemp, self.temp, self.det.flo, self.det.fhi))
 		else:
