@@ -1,133 +1,155 @@
 import numpy as np
 import thermo as th
 from scipy import interpolate
+import Detector as dt
 
 
 # Units and Constants
 GHz = 1.e9 # GHz -> Hz
 pW = 1.e12 # W -> pW
 
-def _toFunc(f):
-	if callable(f):
-		return f
-	else:
-		return (lambda x : f)
+
+
+#Vacuum Permitivity
+eps0 = 8.85e-12
+#Resistivity of the mirror
+rho=2.417e-8
+
+
+
 
 class OpticalElement:
-	def __init__(self, name, temp,emis,eff, ip = 0, pEmis = 0, pEff = None):
+
+	# Loads an optical element from name, temp, and absorption
+	def load(self, name, temp, absorb):
 		self.name = name
 		self.temp = temp
+		self.absorb = absorb
+		self.spill = 0
+		self.refl = 0
 
-		#Emissions can be either constants or functions of frequency
+	# Loads an optical element from an atmosphere file
+	def loadAtm(self, atmFile):
+		fs, ts = np.loadtxt(atmFile, dtype=np.float, unpack=True, usecols=[0, 3]) #frequency/efficiency pairs from input file
+		fs*=GHz # [Hz]
 
-		self.emis = _toFunc(emis)
-		self.pEmis = _toFunc(pEmis)
-		self.eff = _toFunc(eff) #Efficiency
-		self.pEff = (self.eff if pEff == None else _toFunc(pEff)) #Polarized efficiency
-		self.ip = _toFunc(ip) #IP coefficient
-		
-def __float(val, bid = None, unit=1.0):
-	try:
-		return unit*float(val)
-	except:
-		try:
-			return unit*float(np.array(eval(val))[bid-1])
-		except:
+		self.temp = 273
+		self.name = "Atm"
+		self.fs = fs
+		self.ts = ts
+
+	#Loads an optical element from 
+	def loadParams(self, params, det, chi = None, ipVal = None):
+		#Detector Parameters
+		self.det = det
+
+		#Gets params from dictionary
+		self.name = params["Element"]
+		self.temp = self._toFloat(params["Temp"])
+		self.absorb = self._toFloat(params["Absorb"], self.det.bid)
+		self.spill = self._toFloat(params["Spill"])
+		self.spillTemp = self._toFloat(params["SpillTemp"])
+		self.refl = self._toFloat(params["Refl"])
+		self.scattFrac = self._toFloat(params["ScattFrac"])
+		self.scattTemp = self._toFloat(params["ScattTemp"])
+
+		# Parameters not included in opticalChain file
+		self.ipVal = ipVal
+		self.chi = chi
+
+	#Get element Ip 
+	def Ip(self, freq):
+		if self.name == "Mirror":
+			if self.chi == None:
+				print "Incidence angle Chi must be defined for mirrors"
+				return 
+
+			geom = (1 / np.cos(self.chi) - np.cos(self.chi))
+			return 2 * geom * np.sqrt(4 * np.pi * eps0 * rho * freq)
+
+		elif self.name == "Lens":
+			if self.ipVal == None:
+				print "IP values must be defined for lenses"
+				return
+
+			return self.ipVal
+
+		return 0
+
+	def Eff(self, freq):
+		if self.name == "Atm":
+			return np.interp(freq,self.fs,self.ts) 
+		elif self.name == "Aperture":
+			return th.spillEff(self.det.pixSize, self.det.f_num, self.det.waistFact, self.det.band_center)
+		else:
+			return  1 - self.absorb - self.spill- self.refl
+
+	def pEff(self, freq):
+		return self.Eff(freq)
+
+
+	def Emis(self, freq):
+		if self.name == "Atm":
+			return 1 - np.interp(freq,self.fs,self.ts) 
+		if self.name == "Aperture":
+			return (1 - self.Eff(freq) + self.spill * th.powFrac(self.spillTemp, self.temp, self.det.flo, self.det.fhi))
+		else:
+			if self.spill != 0:
+				return self.absorb + self.spill * th.powFrac(self.spillTemp, self.temp, self.det.flo, self.det.fhi)
+				print self.name
+			else: 
+				return self.absorb
+
+
+
+	def pEmis(self, freq):
+		return -self.Ip(freq)
+
+
+	def _toFloat(self, val, bid= None, unit=1.0):
+		if val == "NA":
 			return 0
-def loadHWP(hwpDir, temp, det):
-
-	## Get closest hwp frequency to the band center
-	bc = det.band_center/GHz
-	posFreqs = [30,40,90,150,220,230,280]
-	hwpFreq = reduce(lambda x, y: (x if (abs(x - bc) < abs(y - bc)) else y), posFreqs)
-	# Import mueller data file
-	muellerDir = "Mueller_AR/"
-	muellerFile = muellerDir +  "Mueller_V2_nu%.1f_no3p068_ne3p402_ARcoat_thetain0.0.txt"%(hwpFreq)
-
-	#Frequency, T, Rho
-	f, t, r = np.loadtxt(muellerFile, dtype=np.float, unpack=True, usecols=[0, 1, 2])
-	trans = interpolate.interp1d(f, t, kind = "linear")
-	rho = 	interpolate.interp1d(f, r, kind = "linear")
-	e = OpticalElement("HWP", temp, 0, trans, ip = rho, pEmis = lambda x : -rho(x))
-
-	return e
+		else:
+			v = eval(val)
+			if type(v) == float:
+				return v * unit
+			if type(v) == list:
+				return v[bid-1] * unit
 
 
-
-def loadAtm(atmFile):
-
-	fs, ts = np.loadtxt(atmFile, dtype=np.float, unpack=True, usecols=[0, 3]) #frequency/efficiency pairs from input file
-	fs*=GHz # [Hz]
-
-	e = OpticalElement("Atm", 273., .0, 0)
-	e.eff = lambda x :  np.interp(x,fs,ts) 
-	e.emis = lambda x : 1 -  np.interp(x,fs,ts) 
-
-	return e
 
 
 
 def loadOpticalChain(opticsFile,det):
+	data = np.loadtxt(opticsFile, dtype=np.str)
+	keys = data[0]
 
-	elements = []
-	opt_string = np.loadtxt(opticsFile, dtype = np.str,usecols=[0,1,6,7,8,10])
-	# print opt_string
-
-	chi = map(np.deg2rad, [25.7312, 19.5982])
-
+	chi = map(np.deg2rad, [25.7312, 19.5982])	
 	lensIP = .0004
-	# lensIP = .00005
-	
+
 	mirrorNum = 0
 
-	#### For Ebex:
-	# flensIP = [.017, .02]
-	# chi = map(np.deg2rad, [31.299, 20.299])
+	elements = []
+	for line in data[1:]:
+		params = dict(zip(keys, line))
+		e = OpticalElement()
 
-	#For Polarbear
-	# chi = [np.deg2rad(32.5)]
-
-
-	for i in range(1, len(opt_string)):
-		
-		name = opt_string[i][0]
-		temp = __float(opt_string[i][1])
-
-		if name == "Mirror" and mirrorNum >= 2:
-			continue
-
-		if name =="Aperture":
-			eff = th.spillEff(det.pixSize, det.f_num, det.waistFact, det.band_center)
-			absorb = 1 - eff
-			spill = 0
-			spillTemp = 0
-			refl = 0
-		else:
-			absorb = __float(opt_string[i][2], det.bid)
-			spill = __float(opt_string[i][3])
-			spillTemp = __float(opt_string[i][4])
-			refl = __float(opt_string[i][5])
-			eff = 1 - absorb - spill- refl
-
-		## Adds spill and scatter effects to the emission
-		emis = absorb + spill * th.powFrac(spillTemp, temp, det.flo, det.fhi)
-		elements.append(OpticalElement(name, temp,  emis  , eff))
-
-
-		#Edits can be made in specific cases once the element is created
-		if name == "Mirror" and mirrorNum < len(chi):
-			c = chi[mirrorNum]
-
-			elements[-1].pEmis = (lambda x : th.getLambdaOpt(x, c))
-			elements[-1].ip =    (lambda x : -th.getLambdaOpt(x, c))
+		if params["Element"] == "Mirror":
+			if mirrorNum >= 2:
+				continue
+			e.loadParams(params, det, chi = chi[mirrorNum])
 			mirrorNum += 1
 
-		if name == "Lens":
-			elements[-1].ip = _toFunc(lensIP)
+		elif params["Element"] == "Lens":
+			e.loadParams(params, det, ipVal = lensIP)
 
-		if name=="FieldLens":
-			elements[-1].ip = _toFunc(flensIP[det.bid - 1])
+		else:
+			e.loadParams(params, det)
 
-
+		elements.append(e)
 
 	return elements
+
+
+
+

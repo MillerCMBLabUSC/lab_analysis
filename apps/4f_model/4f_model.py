@@ -10,6 +10,18 @@ import glob as gb
 #   Input Data 											
 #########################################################
 
+def geta2(elements, det):
+	a2tot = 0
+	for e in elements:
+		if (e.name == "HWP"):
+			break
+		if (e.Ip(det.band_center) != 0):
+
+			print "%s: %.3f %%"%(e.name, abs(e.Ip(det.band_center))*100)
+			a2tot += abs(e.Ip(det.band_center))
+
+	print "-"*20
+	print "Total a2: %.3f %%\n"%(a2tot * 100)
 
 def runModel(expDir, bandID, writeFile = False):
 	channelFile = expDir + "channels.txt"
@@ -31,27 +43,36 @@ def runModel(expDir, bandID, writeFile = False):
 	elements = [] #List of optical elements
 
 	#CMB optical element
-	elements.append(opt.OpticalElement("CMB", 2.725, 1, 1))
+	e = opt.OpticalElement()
+	e.load("CMB", 2.725, 1)
+	elements.append(e)
 
-	#Atm optical element
-	elements.append(opt.loadAtm(atmFile))
+
+	e = opt.OpticalElement()
+	e.loadAtm(atmFile)
+	elements.append(e)
+
 
 	# Loads elements from Optical Chain file
 	elements += opt.loadOpticalChain(opticsFile, det)
 
+
+	e = opt.OpticalElement()
+	e.load("Detector", det.bath_temp, 1 - det.det_eff)
+	elements.append(e) 
+
+
 	#Inserts HWP at desired position
-	hwpIndex = 8    	#-----SO
+	hwpIndex = 9  	#-----SO
 	# hwpIndex = 10    	#-----Ebex
 	# hwpIndex = 3 		#-----pb
 
-
-	elements.insert(hwpIndex, opt.OpticalElement("HWP", elements[hwpIndex - 1].temp, 0, 1))
-
-
-	## Detector element
-	elements.append(opt.OpticalElement("Detector", .1, 1 - det.det_eff, det.det_eff))
+	e = opt.OpticalElement()
+	e.load("HWP", elements[-1].temp, 0)
+	elements.insert(hwpIndex, e)
 
 
+	geta2(elements, det)
 	freqs, UPspecs, UPout, PPout = ps.A4Prop(elements, det ,hwpIndex)
 
 	incPow = map(lambda x : th.powFromSpec(freqs, x), UPspecs)
@@ -81,21 +102,33 @@ def runModel(expDir, bandID, writeFile = False):
 		f.write( outputString)
 		f.close()
 
-	return None
+	return det.band_center/GHz, sum(PPout)*pW, sum(PPout)*pW/pW_per_Kcmb
 
-
-if __name__=="__main__":
-	# runModel("Experiments/V2_dichroic/HF_45cm_3waf_silicon/LargeTelescope/", 1 , False)
+def runAll(fileDir):
 	fileDir = "Experiments/V2_dichroic/45cm"
 	expDirs  = [sorted(gb.glob(x+'/*')) for x in sorted(gb.glob(fileDir))]
-	
+	tab = {}
 	for e in expDirs[0]:
 		wf = True
 		print e
-		runModel(e + "/LargeTelescope/", 1, writeFile = wf)
-		runModel(e + "/LargeTelescope/", 2, writeFile = wf)
+		f, ApW, AK = runModel(e + "/LargeTelescope/", 1, writeFile = wf)
+		tab[f] = [ApW, AK]
+		f, ApW, AK = runModel(e + "/LargeTelescope/", 2, writeFile = wf)
+		tab[f] = [ApW, AK]
 		print "*" * 80
+	
+	keys = sorted(tab.iterkeys())
+	print "pW: {" + ", ".join(map(lambda x : "%.5f"%(tab[x][0]), keys)) + "}"
+	print "Kcmb: {" + ", ".join(map(lambda x : "%.5f"%(tab[x][1]), keys)) + "}"
 
+
+if __name__=="__main__":
+	# runModel("Experiments/Comparisons/ebex/LargeTelescope/", 1, False) #---	Run Ebex Comparison
+	#runModel("Experiments/Comparisons/pb", 1, False) #---	Run PB Comparison
+
+	runModel("Experiments/V2_dichroic/45cm/HF_45cm_3waf_silicon/LargeTelescope/", 1 , False)
+
+	# runAll("Experiments/V2_dichroic/45cm")
 
 
 

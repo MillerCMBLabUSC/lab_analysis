@@ -25,12 +25,12 @@ def A4Prop(optElements, det, hwpIndex):
 		elem = optElements[i]
 		
 		#Unpolarized and polarized spectrum of the element
-		UPEmitted = th.weightedSpec(freqs,elem.temp,elem.emis)
-		UPtrans = specs[-1] * map(elem.eff, freqs)
+		UPEmitted = th.weightedSpec(freqs,elem.temp,elem.Emis)
+		UPTrans = specs[-1] * map(elem.Eff, freqs)
 
 		#Polarized emitted power and IP conversion power
 		PPEmitted = th.weightedSpec(freqs,elem.temp,elem.pEmis)
-		ipPower = specs[-1]*map(elem.ip, freqs) * map(elem.eff, freqs) 
+		ipPower = specs[-1]*map(elem.Ip, freqs) * map(elem.Eff, freqs) 
 
 		# We don't care about pp created after HWP
 		if i >= hwpIndex:
@@ -43,7 +43,7 @@ def A4Prop(optElements, det, hwpIndex):
 
 		# Calculates the total efficiency of everything on detector side of element
 
-		effs = lambda f : map(lambda x : x.eff(f), optElements[i+1:])
+		effs = lambda f : map(lambda x : x.Eff(f), optElements[i+1:])
 		peffs = lambda f : map(lambda x : x.pEff(f), optElements[i+1:])
 		if len(effs(det.band_center)) > 0:
 			cumEff = lambda f : reduce((lambda x, y: x*y), effs(f))
@@ -65,7 +65,7 @@ def A4Prop(optElements, det, hwpIndex):
 		detUP = abs(.5 * th.powFromSpec(freqs, detUPspec))  # 1/2 because we are goint UP -> PP
 		detPP = abs(th.powFromSpec(freqs, detPPspec))
 
-		specs.append(UPTotal + UPtrans)
+		specs.append(UPTotal + UPTrans)
 		UPout.append(detUP)
 		PPout.append(detPP)
 

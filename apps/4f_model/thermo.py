@@ -54,6 +54,10 @@ def powFrac(T1, T2, f1, f2):
 			return bbPower(T1, 1.0, f1, f2)/bbPower(T2, 1.0, f1, f2)
 
 
+def getLambdaOptCoeff( chi):
+	geom = (1 / np.cos(chi) - np.cos(chi))
+	return - 2 * geom * np.sqrt(4 * PI * eps0 * rho )
+
 def getLambdaOpt(nu, chi):
 	geom = (1 / np.cos(chi) - np.cos(chi))
 	return - 2 * geom * np.sqrt(4 * PI * eps0 * rho * nu)
@@ -68,7 +72,7 @@ def aniPowSpec(emissivity, freq, temp=None):
 
 
 def dPdT(elements, det):
-	totalEff = lambda f : reduce((lambda x,y : x * y), map(lambda e : e.eff(f), elements))
-
+	totalEff = lambda f : reduce((lambda x,y : x * y), map(lambda e : e.Eff(f), elements[1:]))
+	
 	return intg.quad(lambda x: aniPowSpec(totalEff(x), x, Tcmb), det.flo, det.fhi)[0]
 	

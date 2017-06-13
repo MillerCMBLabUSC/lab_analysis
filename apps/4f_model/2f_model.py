@@ -32,7 +32,7 @@ def f2Model(expDir, writeFile = False):
 	outString +=  "-"*40 + "\n"
 
 
-	for bandID in [1]:#,2]:
+	for bandID in [1,2]:
 
 		#Imports detector data 
 		det = dt.Detector(channelFile, cameraFile, bandID)
@@ -101,7 +101,7 @@ def f2Model(expDir, writeFile = False):
 		detIp = hwpInc * elements[hwpIndex].ip(freqs) * cumEff(freqs) 
 		# Polarized emission of HWP
 		hwpEmis = th.weightedSpec(freqs,elements[hwpIndex].temp, elements[hwpIndex].pEmis) * cumEff(freqs)
-		print elements[hwpIndex].ip(det.band_center)
+
 
 
 		#2f power at the detector
