@@ -1,6 +1,7 @@
 import numpy as np
 import thermo as th
 from scipy import interpolate
+from scipy import integrate as intg
 import Detector as dt
 
 
@@ -29,14 +30,20 @@ class OpticalElement:
 		self.refl = 0
 
 	# Loads an optical element from an atmosphere file
-	def loadAtm(self, atmFile):
-		fs, ts = np.loadtxt(atmFile, dtype=np.float, unpack=True, usecols=[0, 3]) #frequency/efficiency pairs from input file
-		fs*=GHz # [Hz]
+	def loadAtm(self, atmFile, det):
+		freqs, temps, trans = np.loadtxt(atmFile, dtype=np.float, unpack=True, usecols=[0, 2, 3]) #frequency/efficiency pairs from input file
+		freqs*=GHz # [Hz]
 
-		self.temp = 273
+
+		tempF = interpolate.interp1d(freqs, temps, kind = "linear")
+		x = np.linspace(det.flo, det.fhi, 400)
+		y = tempF(x)
+
+		self.temp = intg.simps(y, x=x)/(det.fhi - det.flo)
+		print "ATM temp: %.1f"%self.temp
 		self.name = "Atm"
-		self.fs = fs
-		self.ts = ts
+		self.fs = freqs
+		self.ts = trans
 
 	#Loads an optical element from 
 	def loadParams(self, params, det, chi = None, ipVal = None):

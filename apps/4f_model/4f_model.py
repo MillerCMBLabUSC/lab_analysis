@@ -49,7 +49,7 @@ def runModel(expDir, bandID, writeFile = False):
 
 
 	e = opt.OpticalElement()
-	e.loadAtm(atmFile)
+	e.loadAtm(atmFile, det)
 	elements.append(e)
 
 
