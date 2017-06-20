@@ -40,7 +40,6 @@ class OpticalElement:
 		y = tempF(x)
 
 		self.temp = intg.simps(y, x=x)/(det.fhi - det.flo)
-		print "ATM temp: %.1f"%self.temp
 		self.name = "Atm"
 		self.fs = freqs
 		self.ts = trans
@@ -128,12 +127,11 @@ class OpticalElement:
 
 
 
-def loadOpticalChain(opticsFile,det):
+def loadOpticalChain(opticsFile,det, lensIP = .0004):
 	data = np.loadtxt(opticsFile, dtype=np.str)
 	keys = data[0]
 
 	chi = map(np.deg2rad, [25.7312, 19.5982])	
-	lensIP = .0004
 
 	mirrorNum = 0
 

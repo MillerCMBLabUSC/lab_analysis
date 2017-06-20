@@ -16,7 +16,7 @@ pW = 1.e12 # W -> pW
 
 
 ## Calculates A2 and a2 for optical setup
-def f2Model(expDir, writeFile = False):
+def f2Model(expDir, hwpIndex = 9,  writeFile = False):
 	channelFile = expDir + "channels.txt"
 	cameraFile = expDir + "camera.txt"
 	opticsFile = expDir + "opticalChain.txt"
@@ -24,14 +24,17 @@ def f2Model(expDir, writeFile = False):
 
 	outFile = expDir + "2f_out.txt"
 
-	hwpIndex = 9
+
 
 	outString = ""
-	outString +=  "bid\tf\t\tHWP_f\ta2 Ave\t\tA2\t\t\tA2\n"
-	outString +=  "[]\t[GHz]\t[GHz]\t[]\t\t\t[pW]\t\t[Kcmb]\n"
+	outString +=  "bid\tf\tHWP_f\ta2 Ave\t\tA2\t\t\tA2\n"
+	outString +=  "[]\t[GHz]\t[GHz]\t[]\t\t[pW]\t\t[Kcmb]\n"
 	outString +=  "-"*40 + "\n"
 
-
+	band_centers = []
+	a2s = []
+	A2_pW = []
+	A2_K = []
 	for bandID in [1,2]:
 
 		#Imports detector data 
@@ -40,15 +43,29 @@ def f2Model(expDir, writeFile = False):
 		elements = [] #List of optical elements
 
 		#CMB optical element
-		elements.append(opt.OpticalElement("CMB", 2.725, 1, 1))
-		#Atm optical element
-		elements.append(opt.loadAtm(atmFile))
+		e = opt.OpticalElement()
+		e.load("CMB", 2.725, 1)
+		elements.append(e)
+
+
+		e = opt.OpticalElement()
+		e.loadAtm(atmFile, det)
+		elements.append(e)
+
+
 		# Loads elements from Optical Chain file
 		elements += opt.loadOpticalChain(opticsFile, det)
-		## Detector element
-		elements.append(opt.OpticalElement("Detector", .1, 1 - det.det_eff, det.det_eff))
 
 
+		e = opt.OpticalElement()
+		e.load("Detector", det.bath_temp, 1 - det.det_eff)
+		elements.append(e) 
+
+
+		#Inserts HWP at desired position
+		# hwpIndex = 9  	#-----SO
+		# hwpIndex = 10    	#-----Ebex
+		# hwpIndex = 3 		#-----pb
 
 
 
@@ -62,8 +79,9 @@ def f2Model(expDir, writeFile = False):
 
 		f, r = np.loadtxt(muellerFile, dtype=np.float, unpack=True, usecols=[0, 2])
 
-
-		e = opt.loadHWP(muellerDir, elements[hwpIndex - 1].temp, det)
+		e = opt.OpticalElement()
+		e.load("HWP", elements[-1].temp, 0)
+		elements.insert(hwpIndex, e)
 
 
 
@@ -81,7 +99,7 @@ def f2Model(expDir, writeFile = False):
 
 
 		# Gets average a2 value
-		a2Ave = intg.simps(y, x=x)/(det.fhi - det.flo)
+		a2Ave = abs(intg.simps(y, x=x)/(det.fhi - det.flo))
 
 		#Inserts HWP at hwpIndex
 		# elements.insert(hwpIndex, opt.OpticalElement("HWP", elements[hwpIndex - 1].temp, 0, 1))
@@ -93,12 +111,13 @@ def f2Model(expDir, writeFile = False):
 		freqs, UPspecs, _, _ = ps.A4Prop(elements, det, hwpIndex)
 
 
-		effs = lambda f : map(lambda x : x.eff(f), elements[hwpIndex+1:])
+
+		effs = lambda f : map(lambda x : x.Eff(f), elements[hwpIndex+1:])
 		cumEff = lambda f : reduce((lambda x, y: x*y), effs(f))
 
 		# Incident power on the HWP
 		hwpInc = UPspecs[hwpIndex]
-		detIp = hwpInc * elements[hwpIndex].ip(freqs) * cumEff(freqs) 
+		detIp = hwpInc * rho(freqs) * cumEff(freqs) 
 		# Polarized emission of HWP
 		hwpEmis = th.weightedSpec(freqs,elements[hwpIndex].temp, elements[hwpIndex].pEmis) * cumEff(freqs)
 
@@ -106,13 +125,17 @@ def f2Model(expDir, writeFile = False):
 
 		#2f power at the detector
 		det2FPow = detIp + hwpEmis
+
 		#Total A2 (W)
 		A2 = abs(np.trapz(det2FPow, freqs))
 
 
+		band_centers.append(det.band_center / GHz)
+		a2s.append(a2Ave)
+		A2_pW.append(A2 * pW)
+		A2_K.append(A2 * pW / pW_per_Kcmb)
 
-
-		outString +=  "%d\t%.1f\t%.1f\t%.2e\t%.3e\t%.3f\n"%(det.bid, det.band_center/GHz, hwpFreq, a2Ave, A2*pW, A2*pW/pW_per_Kcmb)
+		outString +=  "%d\t%.1f\t%.1f\t%.2e\t%.8e\t%.3f\n"%(det.bid, det.band_center/GHz, hwpFreq, a2Ave, A2*pW, A2*pW/pW_per_Kcmb)
 	print outString
 
 	if writeFile:
@@ -121,19 +144,47 @@ def f2Model(expDir, writeFile = False):
 		f.write(outString)
 		f.close()
 
+	return band_centers, a2s, A2_pW, A2_K
 
+def toTeXTable(table, acc = 4):
+	out_string = ""
+	keys = sorted(table.iterkeys())
+
+	for k in keys:
+		out_string += "%.1f & %s\\\\ \n"%(k, str(round(table[k][0],acc)))
+
+	return out_string
+
+def runAll(fileDir):
+	expDirs  = [sorted(gb.glob(x+'/*')) for x in sorted(gb.glob(fileDir))]
+
+	hwpIndices = [8,9,10]
+
+	tab_a2 = {}
+	tab_pW = {}
+	tab_K = {}
+	for e in expDirs[0]:
+		for hwpi in hwpIndices:
+			wf = False
+			band_centers, a2s, A2_pW, A2_K = f2Model(e + "/LargeTelescope/", hwpIndex = hwpi, writeFile = wf)
+			print  "*"*50 + "\n"
+
+			for i in range(2):
+				if band_centers[i] in tab_a2.iterkeys():
+					tab_a2[band_centers[i]].append(a2s[i])
+					tab_pW[band_centers[i]].append(A2_pW[i])
+					tab_K[band_centers[i]].append(A2_K[i])
+				else:
+					tab_a2[band_centers[i]] = [a2s[i]]
+					tab_pW[band_centers[i]] = [A2_pW[i]]
+					tab_K[band_centers[i]] = [A2_K[i]]
+
+	print toTeXTable(tab_K)
 
 
 
 if __name__=="__main__":
-	f2Model("Experiments/V2_dichroic/45cm/HF_45cm_3waf_silicon/LargeTelescope/" , True)
+	# f2Model("Experiments/V2_dichroic/45cm/HF_45cm_3waf_silicon/LargeTelescope/" , True)
 	
-	# fileDir = "Experiments/V2_dichroic/45cm"	
-	# expDirs  = [sorted(gb.glob(x+'/*')) for x in sorted(gb.glob(fileDir))]
-	
-	# for e in expDirs[0]:
-	# 	wf = True
-
-	# 	f2Model(e + "/LargeTelescope/", writeFile = wf)
-	# 	print  "*"*50 + "\n"
+	runAll("Experiments/V2_dichroic/45cm")
 

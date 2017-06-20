@@ -54,13 +54,14 @@ sorting=none]{biblatex}
 \newcommand{\mc}[1]{\mathcal{#1}}
 \newcommand{\comp}[1]{\overline{#1}}
 \newcommand{\AI}{A^{(4)}_{0|<I_{\t{in}}>}}
+\newcommand{\A}[1]{A^{(#1)}}
 \newcommand{\lo}{\lambda_\t{opt}^{(4)}}
 \newcommand{\ip}{$I\rightarrow P$ }
 
 \linespread{1.25}
 \renewcommand{\vec}[1]{\boldsymbol{#1}}
 \newcommand{\horrule}[1]{\rule{\linewidth}{#1}}
-\DeclarePairedDelimiter\abs{\lvert}{\rvert}%
+\newcommand{\abs}[1]{\left|#1\right|}%
 \DeclarePairedDelimiter\ceil{\lceil}{\rceil}
 \DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
 
@@ -166,6 +167,7 @@ The optical chain and HWP positions are shown in Table \ref{table:SO_OpticalChai
 The HWPSS seen by the detector for each HWP position is shown in Table \ref{table:SO_powers}.
 
 
+
 \begin{table}
 \begin{center}
 
@@ -211,11 +213,11 @@ Shown is also the three HWP positions which we have considered, and the HWP posi
 	 & \multicolumn{3}{|c|}{HWPSS (pW)}\\
 	\hline
 	freq(GHz) & pos 1 	& pos 2 & pos 3 \\ \hline
-	27  & .00057, .00057 & .00063, .00058 & .0007, .00059 \\
-	39  & .00253, .00253 & .00289, .00257 & .00326, .00262	 \\
-	93  & .00766, .00766 & .00849, .00776 & .00932, .00787 	 \\
-	145 & .01880, .01899  & .02076, .01912   & .02262, .01936 	 \\
-	233 & .05883, .05883   & .06671, .05981   & .0746, .0608 	 \\
+	27 &  \text{0.000829, 0.000788} & \text{0.000829, 0.000788} & \text{0.000829, 0.000788} \\
+	39 &  \text{0.003765, 0.003511} & \text{0.003765, 0.003511} & \text{0.003765, 0.003511} \\
+	93 &  \text{0.011248, 0.010638} & \text{0.011248, 0.010638} & \text{0.011248, 0.010638} \\
+	145 & \text{0.027706, 0.026259} & \text{0.027706, 0.026259} & \text{0.027706, 0.026259} \\
+	233 & \text{0.088811, 0.082339} & \text{0.088811, 0.082339} & \text{0.088811, 0.082339} \\
 	\hline	
 \end{tabular}
 
@@ -225,11 +227,11 @@ Shown is also the three HWP positions which we have considered, and the HWP posi
 	 & \multicolumn{3}{|c|}{HWPSS (K$_\t{CMB}$)}\\
 	\hline
 	freq (GHz) & pos 1 	& pos 2 & pos 3 \\ \hline
-	27  & .07139, .07139 	 & .07930, .07238 & .0872, .07337 \\
-	39  & .08735, .08735 & .09993, .08892 & .1125, .09049	 \\
-	93  & .16139, .16139 & .17955, .16413 & .19719, .16634 	 \\
-	145 & .27242, .27242  & .2993, .27579   & .3262, .27916 	 \\
-	233 & .70232, .70232   & .796, .71409   & .8906, .72586 	 \\
+	27 &  \text{0.1037, 0.0985} & \text{0.1037, 0.0985} & \text{0.1037, 0.0985} \\
+	39 &  \text{0.1301, 0.1214} & \text{0.1301, 0.1214} & \text{0.1301, 0.1214} \\
+	93 &  \text{0.2379, 0.225} & \text{0.2379, 0.225} & \text{0.2379, 0.225} \\
+	145 &  \text{0.3996, 0.3787} & \text{0.3996, 0.3787} & \text{0.3996, 0.3787} \\
+	233 &  \text{1.0603, 0.983} & \text{1.0603, 0.983} & \text{1.0603, 0.983} \\
 	\hline	
 \end{tabular}
 
@@ -239,6 +241,27 @@ In each cell, the first number is $\AI$ for a detector towards the edge of the a
 is for a detector towards the center. We present the power in both pW and K$_\t{CMB}$
 }
 \label{table:SO_powers}
+\end{table}
+
+\begin{table}
+\centering
+\begin{tabular}{ |c|c|c|c| } 
+	\hline
+	 & \multicolumn{3}{|c|}{$a_4$}\\
+	\hline
+	freq (GHz) & pos 1 	& pos 2 & pos 3 \\ \hline
+	27 & .00017 & .00057 & .00097\\
+	39 & .00021 & .00061 & .00101\\
+	93 & .00032 & .00072 & .00113\\
+	145 & .00041 & .00081 & .00121\\
+	233 & .00052 & .00092 & .00132\\
+	\hline	
+\end{tabular}
+
+
+\caption{ $a_4$ of the system, including the contribution from the two mirrors and the lenses on the sky side of the HWP.
+}
+\label{table:SO_a4}
 \end{table}
 
 
@@ -270,8 +293,75 @@ Decreasing this coefficient to 1.7\% gives us $\AI = .154 \t{ pW}$ which is much
 
 
 
+\section*{$A^{(2)}$ Calculations}
+\subsection*{Method} 
+\tab Using the propagation method described in the sections above, the incident unpolarized power on the HWP plate $P^u_\t{HWP}$ can be calculated. 
+The HWP has a Mueller matrix :
+\[
+M_\t{HWP} = \left(
+\begin{array}{cccc}
+T & \rho & 0 & 0 \\
+\rho & T & 0 & 0 \\
+0 & 0 & c & -s\\
+0 & 0 & s & c
+\end{array}
+\right).
+\]
+The Mueller coefficients $T,\; \rho,\;c,$ and $s$ at each frequency were calculated by Martina for HWPs at each frequency with an anti-reflective coating.
+$T$ and $\rho$ determine $\A2$ and are shown in Figure \ref{fig:Mueller_Elements} at a frequency of 150 GHz.
+
+\begin{figure}[t!]
+	\centering
+  \includegraphics[width=.6\linewidth]{images/Mueller_150GHz.pdf}
+  \caption{Shown above are the simulated Mueller elements of the HWP Mueller Matrix at 150GHz with anti-reflective coating. 
+  	The orange line is T, the transmission coefficient of I and Q stokes parameters, and the blue line is 
+  	$\rho$, the mixing coefficient between I and Q. The blue area is the range of the detector.}
+  \label{fig:Mueller_Elements}
+\end{figure}
+
+\tab From $M_\t{HWP}$ we can see that the \ip coefficient and thus the polarized emissivity is given by $\rho$. 
+$a_2$ is then calculated as the average value of $\rho$ over the detector bandwidth, and values are give in Table [CITE TABLE].
+Since they interfere destructively the output polarized power of the HWP is given by
+\[
+P^p_{\t{HWP} + 1}(\nu)= \rho(\nu) \left(P^u_\t{HWP}(\nu) - A \Omega(\nu) B(\nu, T_\t{HWP}) \right) 	
+\]
+
+\tab To calculate $\A2$ we then need $\eta_\t{det}$, the combined efficiency of all elements between the HWP and the detector.
+We then integrate over the range of the detector to get
+\[
+\A2 = \abs{ \int_{\nu_\t{low}}^{\nu_\t{high}} \eta_\t{det}(\nu) P^p_{\t{HWP} + 1} d\nu }.
+\]
 
 
+
+
+\subsection*{Results}
+
+Result can be ssen in 
+
+
+
+
+\begin{table}
+\centering
+\begin{tabular}{ |c|c|c|c|} 
+	\hline
+	freq (GHz) &  $a_2\; (\%)$ & $\A2$ (pW)  & $\A2$ ($K_\t{CMB}$) \\ \hline
+	27.0  & 0.8963 & 0.0017 & 0.212 \\ 
+	39.0  & 0.4152 & 0.004  & 0.1391\\ 
+	93.0  & 0.3167 & 0.0067 & 0.1413\\ 
+	145.0 & 0.3576 & 0.0165 & 0.2389\\ 
+	233.0 & 0.6395 & 0.1211 & 1.446 \\ 
+	\hline	
+\end{tabular}
+
+
+
+\caption{ $a_4$ of the system, including the contribution from the two mirrors and the lenses on the sky side of the HWP.
+}
+\label{table:SO_a4}
+\end{table}
+ 
 \printbibliography
 
 
