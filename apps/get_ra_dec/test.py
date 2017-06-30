@@ -13,16 +13,19 @@ np.set_printoptions(edgeitems = 50)
 
 
 #establishing the location of our observer (USC in this case)
-usc = ephem.Observer()
-usc.lon = '-118.286926'
-usc.lat = '34.019579'
+tokyo = ephem.city("Tokyo")
+#usc.lon = '-118.286926'
+#usc.lat = '34.019579'
 
 #scan parameters
-scan = get_ra_dec.ScanParameters(az_0=30, el_0=45, a_thr=10, e_rng=10, e_stp=.5, dt_scn=.2)
-
+scan = get_ra_dec.ScanParameters()
 #producing ra and dec arrays with given scan parameters and observer location
-r, d = scan.get_ra_dec(obs=usc)
+r, d = scan.run_scan()
 
+plt.plot(r, d, 'b')
+plt.show()
+
+'''
 #ra and dec to galactic lon and lat
 l, b = crd.eq_to_gal(r, d)
 
@@ -36,4 +39,4 @@ l, b = crd.eq_to_gal(r, d)
 #plot to make sure things went as planned
 plt.plot(l, b, 'b')
 plt.show()
-
+'''
