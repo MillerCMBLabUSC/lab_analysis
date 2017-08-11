@@ -1,13 +1,9 @@
-# spectral analysis functions:
-# originally written by Hannes.
-# updated by Kate, October 2013.
 
 import numpy as np
 import scipy
 import scipy.signal
 import pylab
 import math
-import copy
 
 
 def window(data, window='hanning', renormalize=1):
@@ -26,7 +22,7 @@ def window(data, window='hanning', renormalize=1):
         return data*np.hanning(N)
 
 
-def fft_coefficients(timestream, samplerate=25e6 / 2 ** 16):
+def fft_coefficients(timestream, samplerate):
     ''' Calculates the fft amplitude coefficients for the input
         timestream.  timestream is a list or an array.
         data[0] = frequency
@@ -49,7 +45,7 @@ def test_fft_coefficients():
     return FFT
 
 
-def psd_func_real(timestream, sample_rate=sample_rates.bolo, truncate=False):
+def psd_func_real(timestream, sample_rate, truncate=False):
     '''
        Takes the power spectral density per unit time of the input timestream.
        Units: timestream_units**2/Hz
@@ -117,9 +113,7 @@ def test_psd_normalization():
     #return PSD
 
 
-def calculate_psd(timestream, rate=None, truncate=False):
-    if rate is None:
-        rate = sample_rates.bolo
+def calculate_psd(timestream, rate, truncate=False):
     N = len(timestream)
     if truncate:
         if (N & N-1):
