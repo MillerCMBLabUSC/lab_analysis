@@ -1,0 +1,33 @@
+function quntNOsc = quntNOsc_s (x)
+
+y=0;    qisTop= false; qisDown= false;
+
+
+for i=2:(length(x)-1)
+    if( ((x(i-1)) < (x(i))) && ((x(i+1))< (x(i))) )  %Max /-\
+        y=y+1;
+    end
+    if( ((x(i-1)) > (x(i))) && ((x(i+1))> (x(i))) )  %min \_/
+        y=y+1;
+    end
+    
+%Top     
+    if( ((x(i-1)) < (x(i))) && ((x(i+1))== (x(i))) ) %StepL /-
+         qisTop= true; qisDown= false;
+    end
+    if( ((x(i-1)) == (x(i))) && ((x(i+1))< (x(i))) ) %stepR -\
+        if qisTop;     y=y+1; end;
+        qisTop= false;
+    end
+    
+%Downs   
+    if( ((x(i-1)) > (x(i))) && ((x(i+1))== (x(i))) ) %stepL \_
+        qisTop= false; qisDown= true;
+    end
+    if( ((x(i-1)) == (x(i))) && ((x(i+1))> (x(i))) ) %StepR _/
+        if qisDown; y=y+1; end
+        qisDown=false;
+    end
+end % for i=2:(length(x)-1)
+quntNOsc= y;
+end % function y = quntNOsc_s (x)
