@@ -30,22 +30,22 @@ def splineEMD = splineEMD(x,Resol,Resid,step):
         IMFs
         """
 
-def osc = osc(x):
-#gets locations of oscillations based on the discrete samples
+def dminmax = dminmax(x):
+#gets locations discrete mins and maxes
+ 
     
+    #initialize empty lists for storing x and y values for min/max
     top = False
     bottom = False
-    minmax = 
-    osc = np.zeros(len(x)-2,2)
+    dmin = []
+    dmax = []
 
     for i in range(1,length(x)-1):
         if x[i-1] < x[i] and x[i] > x[i+1]: #Maximum
-            osc[i-1,0] = x[i]
-            osc[i-1,1] = 'max'
+            dmax.append([i,x[i]])
             
         if x[i-1] > x[i] and x[i] < x[i+1]: #Minimum
-            osc[i-1,0] = x[i]
-            osc[i-1,1] = 'min'
+            dmin.append([i,x[i]])
             
         #this is to handle the off chance of us sampling two minimums of equal 
         #magnitude next to each other
@@ -54,8 +54,7 @@ def osc = osc(x):
             down = True
         if x[i-1] == x[i] and x[i] > x[i+1]:
             if down :
-                osc[i-1,0] = x[i]
-                osc[i-1,1] = 'min'
+                dmin.append([i,x[i]])
             down = False
         
         #this is to handle the off chance of us sampling to maximums of equal
@@ -65,64 +64,106 @@ def osc = osc(x):
             down = False
         if x[i-1] == x[i] and x[i] < x[i+1]:
             if top:
-                osc[i-1,0] = x[i]
-                osc[i-1,1] = 'max'
+                dmax.append([i,x[i]])
             down = False
+        
+    dmax = np.array(dmax)
+    dmin = np.array(dmin)
+        
+    tmin = dmin[:,0]
+    tmax = dmax[:,0]
+    ymin = dmin[:,1]
+    ymax = dmax[:,1]
     
-    return osc
-
-def interp = interp(x):
-#gets locations of the oscillations based on parabolic interpolation
-
-    ocount = 0
-    forcount = 0
+    mincoeff = np.zeros((len(dmax),3))
+    maxcoeff = np.zeros((len(dmax),3))
+    #get parabolic mins
     
-    tvalues = np.zeros((len(x)-2,3))
-    cmat = np.zeros((len(x))-2,3)
-    
-    for i in range(1,len(x)-1):
+    for i in range(0,len(dmin)):
+        #get values on opposite sides of the minimum
+        y1 = x[tmin[i]-1]
+        y2 = x[tmin[i]]
+        y3 = x[tmin[i]+1]
+        A = []
+        #setup a solve linear equation for coefficients of parabola
         for j in range(0,3):
-            tvalues[i-1,j]=i+j-1
-        count = count + 1
-        if count == 3
-            A = np.matrix(tvalues[range(i-1,i+2)]**2)
-            b = np.array([x[i-1],x[i],x[i+1]])
-            coeff = np.linalg.solve(A,b)
-            count = 0;
-            cmat[i] = coeff
+            A.append([(tmin[i]-1)**2,tmin[i],1])
+        A = np.array(A)
+        b = np.array([x[tmin[i]-1],x[tmin[i]],x[tmin[i]+1]])
+        mincoeff[i] = np.linalg.solve(A,b)
     
-    #get the interpolated min/max
-    #vertex of parabola located @ t = -b/2a
+    #get parabolic maxs
     
-    interpolated = np.zeros(len(x)-2)
-    interp = np.zeros(len(x)-2,2)
-    
-    for i in range(1,len(x)-1):
-        a = coeff[i-1,0]
-        b = coeff[i-1,1]
-        c = coeff[i-1,2]
-        interpolated[i] = a*(b**2)/(4*(a**2)) - (b**2)/(4*a) + c
-        if a > 0:
-            interp[i-1,0] = interpolated[i]
-            interp[i-1,1] = 'min'
-        if a < 0: 
-            interp[i-1,0] = interpolated[i]
-            interp[i-1,1] = 'max'
-        if a == 0:
-            interp[i-1,0] = interpolated[i]
-            interp[i-1,1] = 'saddle'
-            
-    ''' add code to 
-    interpolate end points 
-    using ghost cells
-    '''
-    
+    for i in range(0,len(dmax)):
+        #get values on opposite sides of the maximum
+        y1 = x[tmin[i]-1]
+        y2 = x[tmin[i]]
+        y3 = x[tmin[i]+1]
+        A = []
+        #setup a solve linear equation for coefficients of parabola
+        for j in range(0,3):
+            A.append([(tmin[i]-1)**2,tmin[i],1])
+        A = np.array(A)
+        b = np.array([x[tmin[i]-1],x[tmin[i]],x[tmin[i]+1]])
+        maxcoeff[i] = np.linalg.solve(A,b)
         
-    return interp
+    #use t = -b/2a to get values of parabolic maxes  
+    
+    pMax = np.zeros(len(dmax),2)
+    pMin = np.zeros(len(dmin),2)
+    
+    for i in range(0,len(dmax)):
+        [amin,bmin,cmin] = [mincoeff[i,0],mincoeff[i,1],mincoeff[i,2]]
+        [amax,bmax,cmax] = [maxcoeff[i,0],maxcoeff[i,1],maxcoeff[i,2]]
         
-           
-            
+        [pMin[i,0],pMin,[i,1]] = [-bmin/(2*amin),-((bmin**2)/(4*amin))+cmin]
+        [pMax[i,0],pMax,[i,1]] = [-bmax/(2*amax),-((bmax**2)/(4*amax))+cmax]
+    """
+    We have the parabolic minimums and maximums and their locations, we can 
+    compare them to the discrete ones later if we'd like
+    """
+    #these conditionals tell us whether or not we could extrapolate the 
+    #beginning and end points as mins or maxs
+    if len(dmax) > 0 
+        if x[0] >= dmax[0] 
+            pMax.reverse()
+            pMax.append(0,x[0])
+            pMax.reverse()
+    if len(dmax) > 0 
+        if x[-1] >= dmax[-1] 
+            pMax.reverse()
+            pMax.append(len(x)-1,x[-1])
+            pMax.reverse()
+        
+    if len(dmin) > 0 
+        if x[0] <= dmin[0] 
+            pMin.reverse()
+            pMin.append(0,x[0])
+            pMin.reverse()
+    if len(dmax) > 0 
+        if x[-1] <= dmin[-1] 
+            pMin.reverse()
+            pMin.append(len(x)-1,x[-1])
+            pMin.reverse()
+        
+    """
+    we might need to add two more conditionals for when doing analysis on the 
+    residues because they may not have mins and maxs, but the current x(t)
+    still needs to have its first and last points extrapolated
+    """
+    
+    return (pMin, pMax)
             
 
-def 
+def minExrap(x,pMin,pMax):
+"""
+produces two ghost cells outside the signal that contain a minimum value 
+equal to the fist minimum of the signal and the last minimum of the signal
+in order to better extrapolate the first and last points of the signal
+"""    
+    
+    if pMin[0,0] == 0 and pMax[0,0] == 0 :
+        print("Something is weird with min and max, fix it!")
+    else:
+        
             
