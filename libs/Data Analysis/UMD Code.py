@@ -128,8 +128,7 @@ def dminmax = dminmax(x):
         if x[0] >= dmax[0] 
             pMax.reverse()
             pMax.append(0,x[0])
-            pMax.reverse()
-    if len(dmax) > 0 
+            pMax.reverse() 
         if x[-1] >= dmax[-1] 
             pMax.reverse()
             pMax.append(len(x)-1,x[-1])
@@ -139,8 +138,7 @@ def dminmax = dminmax(x):
         if x[0] <= dmin[0] 
             pMin.reverse()
             pMin.append(0,x[0])
-            pMin.reverse()
-    if len(dmax) > 0 
+            pMin.reverse() 
         if x[-1] <= dmin[-1] 
             pMin.reverse()
             pMin.append(len(x)-1,x[-1])
