@@ -62,17 +62,28 @@ def runModel(expDir, bandID, hwpIndex = 9, lensIP = .0004, writeFile = False):
 	elements.append(e) 
 
 
+	insertHWP = True
+	for (i,e) in enumerate(elements):
+		if e.name=="HWP":
+			hwpIndex = i
+			insertHWP = False
+
 	#Inserts HWP at desired position
-	hwpIndex = 9  	#-----SO
+	# hwpIndex = 9  	#-----SO
 	# hwpIndex = 10    	#-----Ebex
 	# hwpIndex = 3 		#-----pb
 
-	e = opt.OpticalElement()
-	e.load("HWP", elements[-1].temp, 0)
-	elements.insert(hwpIndex, e)
+	if insertHWP:
+		e = opt.OpticalElement()
+		e.load("HWP", elements[-1].temp, 0)
+		elements.insert(hwpIndex, e)
 
 
-	geta2(elements, det)
+
+	# for e in elements:
+	# 	print "%s\t%.3f\t%.f6\t"%(e.name, e.Eff(det.band_center), e.Ip(det.band_center))
+
+	# geta2(elements, det)
 	freqs, UPspecs, UPout, PPout = ps.A4Prop(elements, det ,hwpIndex)
 
 	incPow = map(lambda x : th.powFromSpec(freqs, x), UPspecs)
@@ -94,14 +105,14 @@ def runModel(expDir, bandID, hwpIndex = 9, lensIP = .0004, writeFile = False):
 	outputString +=  "\nFinal output up:\t%e pW \t %e Kcmb\n"%(sum(UPout)*pW, sum(UPout)*pW / pW_per_Kcmb)
 	outputString +=  "Final output pp:\t%e pW \t %e Kcmb\n" %(sum(PPout)*pW,  sum(PPout)*pW / pW_per_Kcmb)
 
-	# print outputString
+	print outputString
 
 	if writeFile:
 		fname = expDir + "%dGHz_opticalPowerTable.txt"%(det.band_center/GHz)
 		f = open(fname, 'w')
 		f.write( outputString)
-		f.close()
-
+		f.close(
+)
 	return det.band_center/GHz, sum(PPout)*pW, sum(PPout)*pW/pW_per_Kcmb
 
 def toTeXTable(table, acc = 4):
@@ -151,9 +162,11 @@ if __name__=="__main__":
 	# runModel("Experiments/Comparisons/ebex/LargeTelescope/", 1, False) #---	Run Ebex Comparison
 	#runModel("Experiments/Comparisons/pb", 1, False) #---	Run PB Comparison
 
-	# runModel("Experiments/V2_dichroic/45cm/HF_45cm_3waf_silicon/LargeTelescope/", 1 , False)
+	runModel("Experiments/small_aperture/LargeTelescope/", 2, writeFile = False)
 
-	runAll("Experiments/V2_dichroic/45cm")
+
+
+	# runAll("Experiments/V2_dichroic/45cm")
 
 
 

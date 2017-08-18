@@ -28,7 +28,7 @@ class OpticalElement:
 		self.absorb = absorb
 		self.spill = 0
 		self.refl = 0
-
+		self.ipVal = None
 	# Loads an optical element from an atmosphere file
 	def loadAtm(self, atmFile, det):
 		freqs, temps, trans = np.loadtxt(atmFile, dtype=np.float, unpack=True, usecols=[0, 2, 3]) #frequency/efficiency pairs from input file
@@ -43,6 +43,7 @@ class OpticalElement:
 		self.name = "Atm"
 		self.fs = freqs
 		self.ts = trans
+		self.ipVal = None
 
 	#Loads an optical element from 
 	def loadParams(self, params, det, chi = None, ipVal = None):
@@ -51,6 +52,9 @@ class OpticalElement:
 
 		#Gets params from dictionary
 		self.name = params["Element"]
+		self.thick = self._toFloat(params["Thick"])
+		self.index = self._toFloat(params["Index"])
+		self.lossTan = self._toFloat(params["LossTan"])
 		self.temp = self._toFloat(params["Temp"])
 		self.absorb = self._toFloat(params["Absorb"], self.det.bid)
 		self.spill = self._toFloat(params["Spill"])
@@ -80,6 +84,8 @@ class OpticalElement:
 
 			return self.ipVal
 
+		if self.ipVal:
+			return self.ipVal
 		return 0
 
 	def Eff(self, freq):
@@ -88,7 +94,11 @@ class OpticalElement:
 		elif self.name == "Aperture":
 			return th.spillEff(self.det.pixSize, self.det.f_num, self.det.waistFact, self.det.band_center)
 		else:
-			return  1 - self.absorb - self.spill- self.refl
+			if self.absorb == 0 and self.lossTan != 0:
+				ab = self.Emis( freq)
+			else:
+				ab = self.absorb
+			return  1 - ab - self.spill- self.refl
 
 	def pEff(self, freq):
 		return self.Eff(freq)
@@ -103,8 +113,11 @@ class OpticalElement:
 		else:
 			if self.spill != 0:
 				return self.absorb + self.spill * th.powFrac(self.spillTemp, self.temp, self.det.flo, self.det.fhi)
-				print self.name
-			else: 
+				
+			else:
+				# if self.absorb == 0 and self.lossTan != 0:
+
+				# 	return th.dielectricLoss(self.lossTan, self.thick, self.index, self.det.band_center)
 				return self.absorb
 
 
@@ -131,6 +144,10 @@ def loadOpticalChain(opticsFile,det, lensIP = .0004):
 	data = np.loadtxt(opticsFile, dtype=np.str)
 	keys = data[0]
 
+	alumFip = .000138
+	windowIP = .000014
+
+	
 	chi = map(np.deg2rad, [25.7312, 19.5982])	
 
 	mirrorNum = 0
@@ -148,9 +165,14 @@ def loadOpticalChain(opticsFile,det, lensIP = .0004):
 
 		elif params["Element"] == "Lens":
 			e.loadParams(params, det, ipVal = lensIP)
-
+		elif params["Element"] == "AluminaF":
+			e.loadParams(params, det, ipVal = alumFip)
+		elif params["Element"] == "Window":
+			e.loadParams(params, det, ipVal = windowIP)
 		else:
 			e.loadParams(params, det)
+
+
 
 		elements.append(e)
 

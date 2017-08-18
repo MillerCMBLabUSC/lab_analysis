@@ -76,3 +76,16 @@ def dPdT(elements, det):
 	
 	return intg.quad(lambda x: aniPowSpec(totalEff(x), x, Tcmb), det.flo, det.fhi)[0]
 	
+
+#***** Public Methods *****
+#Convert from from frequency [Hz] to wavelength [m]
+def lamb(freq, index=None):
+    if index == None:
+        index = 1.
+    
+    return c/(freq*index)
+
+#Dielectric loss coefficient with thickness [m] and freq [GHz]
+def dielectricLoss( lossTan, thickness, index, freq, atmScatter=0):
+
+	return 1.0 - np.exp((-2*PI*index*lossTan*thickness)/lamb(freq))
