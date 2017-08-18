@@ -128,21 +128,17 @@ def dminmax = dminmax(x):
         if x[0] >= dmax[0] 
             pMax.reverse()
             pMax.append(0,x[0])
-            pMax.reverse() 
+            pMax.reverse()
         if x[-1] >= dmax[-1] 
-            pMax.reverse()
             pMax.append(len(x)-1,x[-1])
-            pMax.reverse()
         
     if len(dmin) > 0 
         if x[0] <= dmin[0] 
             pMin.reverse()
             pMin.append(0,x[0])
-            pMin.reverse() 
+            pMin.reverse()
         if x[-1] <= dmin[-1] 
-            pMin.reverse()
             pMin.append(len(x)-1,x[-1])
-            pMin.reverse()
         
     """
     we might need to add two more conditionals for when doing analysis on the 
@@ -153,15 +149,38 @@ def dminmax = dminmax(x):
     return (pMin, pMax)
             
 
-def minExrap(x,pMin,pMax):
+def extrap(x,pMin,pMax):
 """
-produces two ghost cells outside the signal that contain a minimum value 
-equal to the fist minimum of the signal and the last minimum of the signal
-in order to better extrapolate the first and last points of the signal
-"""    
-    
+produces two ghost cells on both side of the signal that contain a min and max
+value equal to the first min and max of the signal and the last min and max of 
+the signal in order to better extrapolate the first and last points of the signal
+"""  
+      
+    #extrapolating beginning of signal
     if pMin[0,0] == 0 and pMax[0,0] == 0 :
-        print("Something is weird with min and max, fix it!")
+        print("First point is both a min or max!") #IMF is zero at the ends
     else:
+        pMin.reverse()
+        pMin.append(-pMax[0,0],pMin[0,1])
+        pMin.reverse()
+        pMax.reverse()
+        pMax.append(-pMin[0,0],pMax[0,1])
+        pMin.reverse()
+        
+    #extrapolating end of signal
+    if pMin[-1,0] == len(x)-1 and pMax[-1,0] == len(x)-1 :
+        print("First point is both a min or max!") #IMF is zero at the ends
+    else:
+        pMin.append(-pMax[-1,0],pMin[-1,1])
+        pMax.append(-pMin[-1,0],pMax[-1,1])
+        
+    return (pMin,pMax)
+        
+        
+    
+    
+    
+    
+        
         
             
