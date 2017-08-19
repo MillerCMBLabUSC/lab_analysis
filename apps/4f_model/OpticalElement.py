@@ -116,7 +116,6 @@ class OpticalElement:
 				
 			else:
 				# if self.absorb == 0 and self.lossTan != 0:
-
 				# 	return th.dielectricLoss(self.lossTan, self.thick, self.index, self.det.band_center)
 				return self.absorb
 

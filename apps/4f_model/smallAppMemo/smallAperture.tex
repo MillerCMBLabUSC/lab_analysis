@@ -82,36 +82,93 @@ The majority of the work is identical to the calculation of the large aperture H
 \section{Calculating IP}
 Unlike the large aperture system, rays hitting a given pixel enter the optics parallel to one another. 
 Because of this a simple plane wave analysis should be reasonably accurate to calculate the IP of each element. 
-Grant wrote a python script which feeds in the index of refraction and thickness of each optical element in the optical chain into tmm to calculate the differential transmission of the entire system.
-Because my script requires the IP of each element individually, I separately ran the script for each element (and its AR coating) in isolation.
-I am not sure if this is correct, since the IPs of each individual element do not sum up to the IP of the whole system (its off by something like 30\%).
+This can be done by applying the Fresnel equations at each boundary.
+For stacks of thin films, this can easily be done using the transfer matrix method described in \cite{} using the python tmm package. 
+We calculate the IP coefficient by taking the transmission of s and p-waves separately and calculating the polarized fraction:
+\[\text{IP} = \frac{T_p - T_s}{T_p + T_s}.\]
+We can then average this over the bandwidth of the detectors.
+The major sources of \ip leakage that we consider are the window and the two aluminum filters which are on the sky-side of the HWP.
 
-I ran this for incident angles $\theta = 7.5\degree, 10 \degree, 12.5\degree, $ and $15\degree$,
-corresponding to FOV values of $2 \theta$.
-Because of the large incident angles, larger FOV's have more IP and thus a larger $\A4$ value.
+One issue with the calculation is the presence of Fabry-P\`{e}rot interference between filters.
+Because of this the IP coefficient of the two Aluminum filters is dependent on the distance between them, as seen in Figure \ref{fig:IP_vs_distance}.
+For the time being since the distances are not final, and the amplitude of the interference dies down with distance, I am simply taking the average as the distance increases and 
+dividing the IP equally among the two aluminum filters.
 
-The major source are the Aluminum filters, of which there are two skyside of the HWP. 
-The window also contributes, but the IP coefficient is an order of magnitude smaller than the Aluminum filters.
-The coefficients for these two optical elements at various incident angles are given in Table \ref{table:IP_coeffs}
+\begin{figure}[t!]
+	\centering
+  \includegraphics[width=.8\linewidth]{ip_vs_gap_filter_only.png}
+  \caption{$IP$ coefficient as a function of distance for a system with just two aluminum filters separated by a gap.
+  The incident angle is 7.5$\degree$, and frequencies of both 93 and 150 GHz are shown.
+  }
+  \label{fig:IP_vs_distance}
+\end{figure}
+
+
 
 \begin{table}[h]
 \centering
 
-\begin{tabular}{|c|c|c|}
+\begin{tabular}{|c|c|c|c|c|}
 \hline
-$\theta $       & Aluminum Filter IP   & Window IP            \\
+$\theta $       & \multicolumn{2}{|c|}{Aluminum Filter IP} & \multicolumn{2}{|c|}{Aluminum Filter IP}           \\
 \hline
-7.5$\degree$  & $1.9\times 10^{-5}$  & $7.09\times 10^{-7}$ \\
-10$\degree$   & $5.85\times 10^{-5}$ & $3.8\times 10^{-6}$  \\
-12.5$\degree$ & $1.38\times 10^{-4}$ & $1.4\times 10^{-5}$   \\
-15$\degree$   & $2.74\times 10^{-4}$ & $3.88\times 10^{-5}$ \\\hline
+ & 95 GHz & 150 GHz & 95 GHz & 150 GHz\\
+ \hline
+$7.5   \degree$& $6.69 \times 10^{-4}$ & $2.86 \times 10^{-5}$ & $3.88 \times 10^{-4}$ & $3.86 \times 10^{-4}$ \\
+$10.0  \degree$& $1.20 \times 10^{-3}$ & $5.14 \times 10^{-5}$ & $6.79 \times 10^{-4}$ & $7.03 \times 10^{-4}$ \\
+$12.5  \degree$& $1.90 \times 10^{-3}$ & $8.10 \times 10^{-5}$ & $1.04 \times 10^{-3}$ & $1.13 \times 10^{-3}$ \\
+$15.0  \degree$& $2.79 \times 10^{-3}$ & $1.17 \times 10^{-4}$ & $1.47 \times 10^{-3}$ & $1.72 \times 10^{-3}$ \\
+\hline
 \end{tabular}
-\caption{ IP coefficients for various incident angles
+\caption{ Above are the band averaged IP coefficients for the window and aluminum filters at 93 and 150 GHz. $\theta$ is the incident angle of the light
+on the surface.
 }
 \label{table:IP_coeffs}
 \end{table}
+
+
+
 \section{Optical Chain}
-The optical chain and channel input files I am using are given in Grant's emails
+The optical chain being used for the small aperture is given in table \ref{}.
+
+
+
+\begin{table}
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+Name & Temp & Abs [93 GHz, 150 GHz] & Refl \\
+\hline
+Window		& 300.0  & [0.005,0.010]	&0.010 \\
+IRShader1	& 298.0  & [0.001,0.001]	&0.000 \\
+IRShader2	& 293.0  & [0.001,0.001]	&0.000 \\
+IRShader3	& 290.0  & [0.001,0.001]	&0.000 \\
+IRShader4	& 276.0  & [0.001,0.001]	&0.000 \\
+AluminaF	& 82.00  &  NA			   	&0.020 \\
+IRShader1	& 76.00  & [0.001,0.001]	&0.000 \\
+IRShader2	& 70.00  & [0.001,0.001]	&0.000 \\
+IRShader3	& 65.00  & [0.001,0.001]	&0.000 \\
+IRShader4	& 61.00  & [0.001,0.001]	&0.000 \\
+AluminaF	& 42.00  &  NA			   	&0.020 \\
+\hline
+\multicolumn{4}{|c|}{HWP} \\
+\hline
+AluminaF	& 40.00  &  NA			   	&0.020 \\
+AluminaF	& 5.000  &  NA			   	&0.020 \\
+LowPass1	& 4.000  & [0.010,0.010]	&0.050 \\
+Aperture	& 1.000  & NA	       		&NA	   \\
+Lens		& 1.000  &  NA			   	&0.006 \\
+Lens		& 1.000  &  NA			   	&0.006 \\
+LowPass1	& 0.100  & [0.010,0.010]	&0.050 \\
+
+\hline
+\end{tabular}
+\caption{ Above are the band averaged IP coefficients for the window and aluminum filters at 93 and 150 GHz. $\theta$ is the incident angle of the light
+on the surface.
+}
+\label{table:small_aperture_optical_chain}
+\end{table}
+
 
 
 \section{Results}
