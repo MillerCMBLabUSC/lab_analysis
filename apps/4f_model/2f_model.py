@@ -16,7 +16,7 @@ pW = 1.e12 # W -> pW
 
 
 ## Calculates A2 and a2 for optical setup
-def f2Model(expDir, hwpIndex = 9,  writeFile = False):
+def f2Model(expDir, hwpi = 9,  writeFile = False):
 	channelFile = expDir + "channels.txt"
 	cameraFile = expDir + "camera.txt"
 	opticsFile = expDir + "opticalChain.txt"
@@ -62,6 +62,19 @@ def f2Model(expDir, hwpIndex = 9,  writeFile = False):
 		elements.append(e) 
 
 
+
+		# Checks if HWP is already in Optical chain. 
+		# If not, inserts it at index specified.
+		try:
+			hwpIndex = [e.name for e in elements].index("WP")
+		except ValueError:
+			hwpIndex = hwpi
+			e = opt.OpticalElement()
+			e.load("HWP", elements[-1].temp, 0)
+			elements.insert(hwpIndex, e)
+
+
+
 		#Inserts HWP at desired position
 		# hwpIndex = 9  	#-----SO
 		# hwpIndex = 10    	#-----Ebex
@@ -73,17 +86,16 @@ def f2Model(expDir, hwpIndex = 9,  writeFile = False):
 		bc = det.band_center/GHz
 		posFreqs = [30,40,90,150,220,230,280]
 		hwpFreq = reduce(lambda x, y: (x if (abs(x - bc) < abs(y - bc)) else y), posFreqs)
+
+		incAngle = 10
 		# Import mueller data file
 		muellerDir = "Mueller_AR/"
-		muellerFile = muellerDir +  "Mueller_V2_nu%.1f_no3p068_ne3p402_ARcoat_thetain0.0.txt"%(hwpFreq)
+	
+		muellerFile = muellerDir +  "Mueller_V2_nu%.1f_no3p068_ne3p402_ARcoat_thetain%.1f.txt"%(hwpFreq, incAngle)
+		print "reading from:  \t %s"%muellerFile
+
 
 		f, r = np.loadtxt(muellerFile, dtype=np.float, unpack=True, usecols=[0, 2])
-
-		e = opt.OpticalElement()
-		e.load("HWP", elements[-1].temp, 0)
-		elements.insert(hwpIndex, e)
-
-
 
 
 		#Interpolates a2 from data
@@ -185,6 +197,6 @@ def runAll(fileDir):
 
 if __name__=="__main__":
 	# f2Model("Experiments/V2_dichroic/45cm/HF_45cm_3waf_silicon/LargeTelescope/" , True)
-	
-	runAll("Experiments/V2_dichroic/45cm")
+	f2Model("Experiments/small_aperture/LargeTelescope/")
+	# runAll("Experiments/V2_dichroic/45cm")
 

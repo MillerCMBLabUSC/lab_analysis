@@ -160,9 +160,14 @@ def loadOpticalChain(opticsFile,det, lensIP = .0004):
 	data = np.loadtxt(opticsFile, dtype=np.str)
 	keys = data[0]
 
-	
-	windowIP = 1.17*10**(-4)
-	alumFip =  1.72*10**(-3)
+		
+	if det.band_center < 100:
+		windowIP = 6.69*10**(-4)
+		alumFip =  3.88*10**(-4)
+	else:
+		windowIP = 2.86*10**(-5)
+		alumFip =  3.86*10**(-4)
+
 
 	
 	chi = map(np.deg2rad, [25.7312, 19.5982])	
