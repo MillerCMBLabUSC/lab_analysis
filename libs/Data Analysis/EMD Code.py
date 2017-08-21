@@ -7,13 +7,16 @@ step   - Gradient step size (normally is set to 1, can take values 0-1)
 """
 
 import numpy as np
+from scipy.interpolate import interp1d
+import math
 
 
-def splineEMD = splineEMD(x,Resol,Resid,step):
+def splineEMD(x,Resol,Resid,step):
     
-    sig = x                         #get copy of signal
-    Psig = np.norm(x)**2            #Original signal energy
-    siglen = len(sig)               #Signal length
+    sig = x                                 #get copy of original signal
+    t = np.linspace(0,len(sig),len(sig)+1)                    
+    Px = np.norm(x)**2                      #Original signal energy
+    siglen = len(sig)                       #Signal length
     
     #now we are ready to decompose the signal into IMFs
     
@@ -22,15 +25,46 @@ def splineEMD = splineEMD(x,Resol,Resid,step):
     iResid = 0                 #equal energies @ start are zero
     number = osc(sig)               
     
-    while iResid < Resid and number > 2 #while the signal has some energy and oscillates
+    while iResid < Resid and number > 2: #while the signal has some energy and oscillates
         iImf = sig
-        """code 
-        for
-        getting
-        IMFs
-        """
+        (dMin,dMax) = dminmax(iImf)
+        (pMin,pMax) = extrap(iImf,dMin,dMax)
+        if (abs(len(pMin)-len(pMax)) > 2):
+            print('Min/Max count is off')
+        topenv = interp1d(pMax[:,0],pMax[:,1], kind='cubic')
+        botenv = interp1d(pMin[:,0],pMin[:,1], kind='cubic')
+        mean = (topenv + botenv)/2
+        while True:
+            PImf = np.norm(iImf)**2
+            PMean = np.norm(mean)**2
+            if PMean > 0:
+                res = 10*np.log10(PImf/PMean)
+            if res>Resol:
+                break #Resolution reached
+            #Resolution not reached
+            iImf = iImf - step*mean
+            (dMin,dMax) = dminmax(iImf)
+            (pMin,pMax) = extrap(iImf,dMin,dMax)
+            topenv = interp1d(pMax[:,0],pMax[:,1], kind='cubic')
+            botenv = interp1d(pMin[:,0],pMin[:,1], kind='cubic')
+            mean = (topenv + botenv)/2
+            
+        imfs.append([iImf])                  #store IMF in list
+        sig = sig - iImf                     #subtract IMF from signal
+        Psig = np.norm(sig)**2
+        if Psig > 0:
+            iResid = 10*np.log10(Px/Psig)
+        else:
+            iRed = math.inf
+           
+        if Psig/Px > 0: #or some really small positive number, might change later
+            sig = residual
+            imfs.append([residual])
+    
+        imfs = np.array(imfs) #place all imfs and residual into matrix (array)
+          
 
-def dminmax = dminmax(x):
+def dminmax(x):
 #gets locations discrete mins and maxes
  
     
@@ -116,28 +150,28 @@ def dminmax = dminmax(x):
         [amin,bmin,cmin] = [mincoeff[i,0],mincoeff[i,1],mincoeff[i,2]]
         [amax,bmax,cmax] = [maxcoeff[i,0],maxcoeff[i,1],maxcoeff[i,2]]
         
-        [pMin[i,0],pMin,[i,1]] = [-bmin/(2*amin),-((bmin**2)/(4*amin))+cmin]
-        [pMax[i,0],pMax,[i,1]] = [-bmax/(2*amax),-((bmax**2)/(4*amax))+cmax]
+        [pMin[i,0],pMin[i,1]] = [-bmin/(2*amin),-((bmin**2)/(4*amin))+cmin]
+        [pMax[i,0],pMax[i,1]] = [-bmax/(2*amax),-((bmax**2)/(4*amax))+cmax]
     """
     We have the parabolic minimums and maximums and their locations, we can 
     compare them to the discrete ones later if we'd like
     """
     #these conditionals tell us whether or not we could extrapolate the 
     #beginning and end points as mins or maxs
-    if len(dmax) > 0 
-        if x[0] >= dmax[0] 
+    if len(dmax) > 0:
+        if x[0] >= dmax[0]: 
             pMax.reverse()
             pMax.append(0,x[0])
             pMax.reverse()
-        if x[-1] >= dmax[-1] 
+        if x[-1] >= dmax[-1]: 
             pMax.append(len(x)-1,x[-1])
         
-    if len(dmin) > 0 
-        if x[0] <= dmin[0] 
+    if len(dmin) > 0: 
+        if x[0] <= dmin[0]: 
             pMin.reverse()
             pMin.append(0,x[0])
             pMin.reverse()
-        if x[-1] <= dmin[-1] 
+        if x[-1] <= dmin[-1]: 
             pMin.append(len(x)-1,x[-1])
         
     """
@@ -150,11 +184,11 @@ def dminmax = dminmax(x):
             
 
 def extrap(x,pMin,pMax):
-"""
+    """
 produces two ghost cells on both side of the signal that contain a min and max
 value equal to the first min and max of the signal and the last min and max of 
 the signal in order to better extrapolate the first and last points of the signal
-"""  
+"""
       
     #extrapolating beginning of signal
     if pMin[0,0] == 0 and pMax[0,0] == 0 :
