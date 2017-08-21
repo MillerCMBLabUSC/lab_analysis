@@ -20,6 +20,23 @@ rho=2.417e-8
 
 
 class OpticalElement:
+	def __init__(self):
+		#Detector Parameters
+		self.det = None
+		self.name = ""
+		self.thick = 0
+		self.index = 0
+		self.lossTan = 0
+		self.temp = 0
+		self.absorb = 0
+		self.spill = 0
+		self.spillTemp = 0
+		self.refl = 0
+		self.scattFrac = 0
+		self.scattTemp = 0
+		# Parameters not included in opticalChain file
+		self.ipVal = 0
+		self.chi = 0
 
 	# Loads an optical element from name, temp, and absorption
 	def load(self, name, temp, absorb):
@@ -115,8 +132,8 @@ class OpticalElement:
 				return self.absorb + self.spill * th.powFrac(self.spillTemp, self.temp, self.det.flo, self.det.fhi)
 				
 			else:
-				# if self.absorb == 0 and self.lossTan != 0:
-				# 	return th.dielectricLoss(self.lossTan, self.thick, self.index, self.det.band_center)
+				if self.absorb == 0 and self.lossTan != 0:
+					return th.dielectricLoss(self.lossTan, self.thick, self.index, freq)
 				return self.absorb
 
 
@@ -143,8 +160,9 @@ def loadOpticalChain(opticsFile,det, lensIP = .0004):
 	data = np.loadtxt(opticsFile, dtype=np.str)
 	keys = data[0]
 
-	alumFip = .000138
-	windowIP = .000014
+	
+	windowIP = 1.17*10**(-4)
+	alumFip =  1.72*10**(-3)
 
 	
 	chi = map(np.deg2rad, [25.7312, 19.5982])	

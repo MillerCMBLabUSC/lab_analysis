@@ -16,6 +16,8 @@ eps0 = 8.85e-12
 #Resistivity of the mirror
 rho=2.417e-8
 
+GHz = 10 ** 9
+
 Tcmb = 2.725
 
 
@@ -85,7 +87,8 @@ def lamb(freq, index=None):
     
     return c/(freq*index)
 
-#Dielectric loss coefficient with thickness [m] and freq [GHz]
+#Dielectric loss coefficient with thickness [m] and freq [Hz]
 def dielectricLoss( lossTan, thickness, index, freq, atmScatter=0):
+	return 1.0 - np.exp((-2*PI*index*lossTan*thickness)/lamb(freq/GHz))
 
-	return 1.0 - np.exp((-2*PI*index*lossTan*thickness)/lamb(freq))
+

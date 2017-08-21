@@ -68,6 +68,7 @@ def runModel(expDir, bandID, hwpIndex = 9, lensIP = .0004, writeFile = False):
 			hwpIndex = i
 			insertHWP = False
 
+
 	#Inserts HWP at desired position
 	# hwpIndex = 9  	#-----SO
 	# hwpIndex = 10    	#-----Ebex
@@ -77,6 +78,13 @@ def runModel(expDir, bandID, hwpIndex = 9, lensIP = .0004, writeFile = False):
 		e = opt.OpticalElement()
 		e.load("HWP", elements[-1].temp, 0)
 		elements.insert(hwpIndex, e)
+
+
+	# print "Name\tEff"
+	# print "-"*30
+	# for e in elements: 
+	# 	print "%s\t%f"%(e.name, e.Eff(det.band_center))
+	# return 
 
 
 
