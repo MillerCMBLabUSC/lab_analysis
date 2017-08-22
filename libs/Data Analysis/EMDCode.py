@@ -11,7 +11,11 @@ from scipy.interpolate import interp1d
 import math
 
 
-def splineEMD(x,resolution,inputresidual,step):
+def splineEMD(x,resolution,inputResidual,step):
+    """ produces a spline interpolated minimum and maximum envelope, and does the 
+    EMD decomposition until the resolution requirement is met and then until the residual 
+    energy is sufficiently small
+    """
     
     signal = x                                      #get copy of original signal
     t = np.linspace(0,len(signal)-1,len(signal))                    
@@ -24,7 +28,7 @@ def splineEMD(x,resolution,inputresidual,step):
     iniResidual = 0                 #signal has not been sifted and so energies are equal
     #number = osc(signal)               
     
-    while iniResidual < inputresidual:    #while the signal has some energy (assuming signal oscillates)
+    while iniResidual < inputResidual:    #while the signal has some energy (assuming signal oscillates)
         iImf = signal
         (discreteMin,discreteMax) = discreteMinMax(iImf)
         (parabolicMin,parabolicMax) = extrap(iImf,discreteMin,discreteMax)
@@ -109,6 +113,10 @@ def discreteMinMax(x):
     return (discreteMax,discreteMin)
 
 def interp(x,discreteMax,discreteMin):
+    """
+    takes as input the locations of the discrete minimums and maximums, interpolates to 
+    gain a more precise picture of where the mins and maxs are, then outputs those locations
+    """
         
     [tMin,tMax] = [discreteMin[:,0],discreteMin[:,0]]
     
