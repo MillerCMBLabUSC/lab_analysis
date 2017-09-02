@@ -13,25 +13,34 @@ import matplotlib.pyplot as plt
 import scipy.integrate as intg
 
 
+
+"""
+Constants and System Parameters
+"""
 #speed of light [m/s]
 c =2.99792458 * 10**8
 GHz = 10 ** 9
 
-band_center = np.array([93.0 * GHz, 150. * GHz])
-fbw = np.array([.376, .276])
 
-flo = band_center * (1 - fbw/2.)
+
+band_center = np.array([93.0 * GHz,150. * GHz]) # Band center [Hz]
+fbw = np.array([.376, .276]) #Fractional bandwidth
+flo = band_center * (1 - fbw/2.)    
 fhi = band_center * (1 + fbw/2.)
-# print flo, fi
-theta=deg2rad(15./2)
+
+theta=deg2rad(15./2) #incident angle
+
+
+"""
+Helpful functions to calculate IP / AR coating
+"""
 
 def getIP(n, d, freq):
 	lam_vac = c / freq * 1000.
 
 	s = tmm.coh_tmm('s',n, d,theta,lam_vac)
 	p = tmm.coh_tmm('p',n, d,theta,lam_vac)
-
-
+    
 	return -((s['T']-p['T'])/(s['T']+p['T']))
 
 def getBandAverage(n, d, bid, divisions=100):
@@ -39,45 +48,55 @@ def getBandAverage(n, d, bid, divisions=100):
 	ips = np.array(map(lambda x : getIP(n,d,x), fs))
 	return trapz(ips, fs) / (fhi[bid] - flo[bid])
 
+def ARCoat(n, lam):
+    nAR = [real(n)**(1./3), real(n)**(2./3)]
+    nAR = [real(n)**(1./2)]
+    dAR = map(lambda x : lam0 / (4.0 * x), nAR)
+    return nAR, dAR
 
+"""
+Indices of refraction and thicknesses [mm] of optical elements
+"""
+lam0 = 2.5 #[mm]
 
-#Indices of refraction and thicknesses [mm] of optical elements
-
-n_window = [sqrt(1.5),1.5+0.0001j,sqrt(1.5)]
-d_window = [0.25*2.0/sqrt(1.5),5.0,0.25*2.0/sqrt(1.5)]
+nwin = 1.5 + .0001j
+dwin = 5.0
+nAR, dAR = ARCoat(nwin, lam0)
+n_window = nAR + [nwin] + nAR[::-1]
+d_window = dAR + [dwin] + dAR[::-1]
 
 n_styrofoam = [1.03,1.0,1.03,1.0,1.03,1.0,1.03,1.0,1.03,1.0,1.03,1.0,1.03,1.0,1.03,1.0,1.03,1.0,1.03]
 d_styrofoam = [3.0,0.5,3.0,0.5,3.0,0.5,3.0,0.5,3.0,0.5,3.0,0.5,3.0,0.5,3.0,0.5,3.0,0.5,3.0]
 
 n0 = 3.1
 lam0 = 2.5
-n_AluminaF = [n0**(1./3), n0**(2./3), n0 + .00008j, n0**(2./3), n0**(1./3)]
-# d_AluminaF = [0.25*2.0/sqrt(3.1),2.0,0.25*2.0/sqrt(3.1)]
+d_filter = 2.0
+nAR, dAR = ARCoat(n0, lam0)
+n_AluminaF = nAR + [n0] + nAR[::-1]
+d_AluminaF = dAR + [d_filter] + dAR[::-1]
 
-d_AluminaF = [lam0/(4.0*real(n0)**(1./3)), lam0/(4.0*real(n0)**(2./3)), 2.0, \
-			  lam0/(4.0*real(n0)**(2./3)), lam0/(4.0*real(n0)**(1./3))]
 
+
+
+
+"""
+Constructing optical chains
+"""
 #Construction of the optical chain
 n_fullChain = [1.0] + n_window + [ 1.0] + n_styrofoam + [1.0] + n_AluminaF + [1.0] + n_AluminaF + [1.0]
 d_fullChain = [Inf] + d_window + [50.0] + d_styrofoam + [0.5] + d_AluminaF + [10] + d_AluminaF + [Inf]
 
-n_test = [1.0] + n_AluminaF + [1.0] + n_AluminaF  + [1.0]
-d_test = [Inf] +  d_AluminaF + [10] + d_AluminaF  + [Inf]
 
 
-distances = np.linspace(15,20,100)
-ips = [[],[]]
-for bid in [0,1]:
-	for d in distances:
-		n_test = np.array([1.0] + n_AluminaF + [1.0] + n_AluminaF + [1.0])
-		d_test = np.array([Inf] + d_AluminaF + [ d] + d_AluminaF + [Inf])
-			
-		ips[bid] += [getBandAverage(n_test, d_test, bid)]
+distances = np.linspace(0,10,200)
+ips = [[] for _ in band_center]
+for bid in range(len(band_center)):
+    print "Calculating IP for %d GHz"%(band_center[bid] / GHz)
+    for d in distances: 
+        n_test = np.array([1.0] + n_AluminaF + [1.0] + n_AluminaF + [1.0])
+        d_test = np.array([Inf] + d_AluminaF + [ d] + d_AluminaF + [Inf])
+        ips[bid] += [getBandAverage(n_test, d_test, bid)]
 
-
-
-print "93 GHz average: %e"%(mean(ips[0])/2)
-print "150 GHz average: %e"%(mean(ips[1])/2)
 
 # distances = np.linspace(0,20,300)
 # ips = [[],[]]
