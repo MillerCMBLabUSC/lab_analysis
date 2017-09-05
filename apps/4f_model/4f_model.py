@@ -10,6 +10,13 @@ import glob as gb
 #   Input Data 											
 #########################################################
 
+
+# Units and Constants
+GHz = 1.e9 # GHz -> Hz
+pW = 1.e12 # W -> pW
+
+
+
 def geta2(elements, det):
 	a2tot = 0
 	for e in elements:
@@ -28,11 +35,6 @@ def runModel(expDir, bandID, hwpIndex = 9, lensIP = .0004, writeFile = False):
 	cameraFile = expDir + "camera.txt"
 	opticsFile = expDir + "opticalChain.txt"
 	atmFile = "Atacama_1000um_60deg.txt"
-
-
-	# Units and Constants
-	GHz = 1.e9 # GHz -> Hz
-	pW = 1.e12 # W -> pW
 
 
 	outputString = ""
@@ -113,7 +115,7 @@ def runModel(expDir, bandID, hwpIndex = 9, lensIP = .0004, writeFile = False):
 	outputString +=  "\nFinal output up:\t%e pW \t %e Kcmb\n"%(sum(UPout)*pW, sum(UPout)*pW / pW_per_Kcmb)
 	outputString +=  "Final output pp:\t%e pW \t %e Kcmb\n" %(sum(PPout)*pW,  sum(PPout)*pW / pW_per_Kcmb)
 
-	print outputString
+#	print outputString
 
 	if writeFile:
 		fname = expDir + "%dGHz_opticalPowerTable.txt"%(det.band_center/GHz)
@@ -121,7 +123,7 @@ def runModel(expDir, bandID, hwpIndex = 9, lensIP = .0004, writeFile = False):
 		f.write( outputString)
 		f.close(
 )
-	return det.band_center/GHz, sum(PPout)*pW, sum(PPout)*pW/pW_per_Kcmb
+	return det.band_center/GHz, sum(PPout)*pW, sum(PPout)*pW/pW_per_Kcmb, elements
 
 def toTeXTable(table, acc = 4):
 	out_string = ""
@@ -156,7 +158,7 @@ def runAll(fileDir):
 			band_entry_K = [[],[],[]]
 			for i, hwpi in enumerate(hwpIndices):
 				for ip in ips:
-					f, ApW, AK = runModel(e + "/LargeTelescope/", bid, hwpIndex = hwpi, lensIP = ip, writeFile = wf)
+					f, ApW, AK = runModel(e + "/LargeTelehm?scope/", bid, hwpIndex = hwpi, lensIP = ip, writeFile = wf)
 					band_entry_pW[i].append(ApW)
 					band_entry_K[i].append(AK)
 			tab_pW[f] = band_entry_pW
@@ -169,8 +171,18 @@ def runAll(fileDir):
 if __name__=="__main__":
 	# runModel("Experiments/Comparisons/ebex/LargeTelescope/", 1, False) #---	Run Ebex Comparison
 	#runModel("Experiments/Comparisons/pb", 1, False) #---	Run PB Comparison
-
-	runModel("Experiments/small_aperture/LargeTelescope/", 2, writeFile = False)
+    
+    for i in [1,2]:
+        band_center, powAtDetector, powCMB, elements = runModel("Experiments/small_aperture/LargeTelescope/", i, writeFile = False)
+        telEff =  reduce((lambda x, y : x * y), [e.Eff(band_center) for e in elements[2:]])
+        
+        print "band_center: %d:"%(band_center)
+        print "Power at Det: \t %e pW"%(powAtDetector)
+        print "Power (pW):\t%e pW" % (powAtDetector/ telEff)
+        print "Power (Kcmb):\t%e"%powCMB
+        print ""
+        
+        
 
 
 

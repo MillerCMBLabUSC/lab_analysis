@@ -50,7 +50,7 @@ def getBandAverage(n, d, bid, divisions=100):
 
 def ARCoat(n, lam):
     nAR = [real(n)**(1./3), real(n)**(2./3)]
-    nAR = [real(n)**(1./2)]
+#    nAR = [real(n)**(1./2)]
     dAR = map(lambda x : lam0 / (4.0 * x), nAR)
     return nAR, dAR
 
