@@ -175,8 +175,8 @@ if __name__=="__main__":
     #runModel("Experiments/Comparisons/pb", 1, False) #---    Run PB Comparison
     for i in [1]:
         
-        expDir = "Experiments/small_aperture/LargeTelescope/"
-#        expDir = "Experiments/V2_dichroic/45cm/MF_45cm_3waf_silicon/LargeTelescope/"
+#        expDir = "Experiments/small_aperture/LargeTelescope/"
+        expDir = "Experiments/V2_dichroic/45cm/MF_45cm_3waf_silicon/LargeTelescope/"
         
         band_center, powAtDetector, powCMB, elements = runModel(expDir, i, writeFile = False)
         telEff =  reduce((lambda x, y : x * y), [e.Eff(band_center) for e in elements[2:]])
