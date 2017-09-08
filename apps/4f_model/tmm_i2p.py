@@ -30,7 +30,6 @@ fhi = band_center * (1 + fbw/2.)
 
 theta=deg2rad(15./2) #incident angle
 
-
 """
 Helpful functions to calculate IP / AR coating
 """
@@ -51,22 +50,27 @@ def getBandAverage(n, d, bid, divisions=100):
 def ARCoat(n, lam):
     nAR = [real(n)**(1./3), real(n)**(2./3)]
 #    nAR = [real(n)**(1./2)]
-    dAR = map(lambda x : lam0 / (4.0 * x), nAR)
+    dAR = map(lambda x : lam / (4.0 * x), nAR)
     return nAR, dAR
 
 """
 Indices of refraction and thicknesses [mm] of optical elements
 """
 lam0 = 2.5 #[mm]
-
-nwin = 1.5 + .0001j
+nwin = 1.5 
 dwin = 5.0
-nAR, dAR = ARCoat(nwin, lam0)
-n_window = nAR + [nwin] + nAR[::-1]
-d_window = dAR + [dwin] + dAR[::-1]
+nARwin, dARwin = ARCoat(nwin, lam0)
+n_window = nARwin + [nwin] + nARwin[::-1]
+d_window = dARwin + [dwin] + dARwin[::-1]
+
+print n_window
+print d_window
+
 
 n_styrofoam = [1.03,1.0,1.03,1.0,1.03,1.0,1.03,1.0,1.03,1.0,1.03,1.0,1.03,1.0,1.03,1.0,1.03,1.0,1.03]
 d_styrofoam = [3.0,0.5,3.0,0.5,3.0,0.5,3.0,0.5,3.0,0.5,3.0,0.5,3.0,0.5,3.0,0.5,3.0,0.5,3.0]
+
+
 
 n0 = 3.1
 lam0 = 2.5
@@ -84,11 +88,19 @@ Constructing optical chains
 """
 #Construction of the optical chain
 n_fullChain = [1.0] + n_window + [ 1.0] + n_styrofoam + [1.0] + n_AluminaF + [1.0] + n_AluminaF + [1.0]
-d_fullChain = [Inf] + d_window + [50.0] + d_styrofoam + [0.5] + d_AluminaF + [10] + d_AluminaF + [Inf]
+d_fullChain = [Inf] + d_window + [50.0] + d_styrofoam + [0.5] + d_AluminaF + [2] + d_AluminaF + [Inf]
 
 
+#n_test= [1.0] + n_window + [ 1.0] 
+#d_test= [Inf] + d_window + [Inf]
+#
+#
+#print getBandAverage(n_test, d_test, 0)
 
-distances = np.linspace(0,10,200)
+
+#print 
+
+distances = np.linspace(0,30,300)
 ips = [[] for _ in band_center]
 for bid in range(len(band_center)):
     print "Calculating IP for %d GHz"%(band_center[bid] / GHz)
@@ -96,7 +108,6 @@ for bid in range(len(band_center)):
         n_test = np.array([1.0] + n_AluminaF + [1.0] + n_AluminaF + [1.0])
         d_test = np.array([Inf] + d_AluminaF + [ d] + d_AluminaF + [Inf])
         ips[bid] += [getBandAverage(n_test, d_test, bid)]
-
 
 # distances = np.linspace(0,20,300)
 # ips = [[],[]]
