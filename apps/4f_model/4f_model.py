@@ -24,13 +24,41 @@ def geta2(elements, det):
             break
         if (e.Ip(det.band_center) != 0):
 
-            print "%s: %.3f %%"%(e.name, abs(e.Ip(det.band_center))*100)
+#            print "%s: %.3f %%"%(e.name, abs(e.Ip(det.band_center))*100)
             a2tot += abs(e.Ip(det.band_center))
 
     print "-"*20
     print "Total a4: %.3f %%\n"%(a2tot * 100)
 
-def runModel(expDir, bandID, hwpIndex = 9, lensIP = .0004, writeFile = False):
+def runModel(expDir, bandID, hwpIndex = 9, lensIP = .0004, theta =  0.1308, writeFile = False):
+    """ Gets A4 for specified experiment
+    
+    Parameters
+    -------
+    expDir : string
+        Path to folder containing `channels.txt`, `camera.txt`, and `opticalChain.txt.`
+    bandID : int (1 or 2)
+        Frequency number for specified experiment
+    hwpIndex : int
+        Index for HWP to be placed at
+    lensIP : float
+        IP of lenses in telescope
+    theta : float [rad]
+        Incident angle (Small aperture)
+    writeFile : bool
+        If optical power file should be printed
+        
+    Returns
+    --------
+    det : Detector
+        Detector object used for experiment
+    elements : list of OpticalElements
+        Optical chain created for experiment
+    powOnDetector : float [pW]
+        Polarized Power incident on detector
+    powCMB : float [Kcmb]
+        Equivalent power in Kcmb at the start of the telescope
+    """
     channelFile = expDir + "channels.txt"
     cameraFile = expDir + "camera.txt"
     opticsFile = expDir + "opticalChain.txt"
@@ -42,66 +70,54 @@ def runModel(expDir, bandID, hwpIndex = 9, lensIP = .0004, writeFile = False):
     #Imports detector data 
     det = dt.Detector(channelFile, cameraFile, bandID)
 
+
+    """
+        CREATES OPTICAL CHAIN
+    """
+    
     elements = [] #List of optical elements
 
-    #CMB optical element
+    #CMB Element
     e = opt.OpticalElement()
     e.load("CMB", 2.725, 1)
     elements.append(e)
-
-
+    
+    #Atmosphere Element
     e = opt.OpticalElement()
     e.loadAtm(atmFile, det)
     elements.append(e)
 
 
-    # Loads elements from Optical Chain file
-    elements += opt.loadOpticalChain(opticsFile, det, lensIP = lensIP)
+    #Telescope elements
+    elements += opt.loadOpticalChain(opticsFile, det, lensIP = lensIP, theta=theta)
 
-
+    #Detector Element
     e = opt.OpticalElement()
     e.load("Detector", det.bath_temp, 1 - det.det_eff)
     elements.append(e) 
 
-
-    insertHWP = True
-    for (i,e) in enumerate(elements):
-        if e.name=="HWP":
-            hwpIndex = i
-            insertHWP = False
-
+    #Gets HWP index
+            
+    try:
+        hwpIndex = [e.name for e in elements].index("HWP")
+    except:
+        e = opt.OpticalElement()
+        e.load("HWP", elements[hwpIndex - 1].temp, 0)
+        elements.insert(hwpIndex, e)
 
     #Inserts HWP at desired position
     # hwpIndex = 9      #-----SO
     # hwpIndex = 10        #-----Ebex
     # hwpIndex = 3         #-----pb
-
-    if insertHWP:
-        e = opt.OpticalElement()
-        e.load("HWP", elements[-1].temp, 0)
-        elements.insert(hwpIndex, e)
-
-    # print "Name\tEff"
-    # print "-"*30
-    # for e in elements: 
-    #     print "%s\t%f"%(e.name, e.Eff(det.band_center))
-    # return 
-
-
-
-    # for e in elements:
-    #     print "%s\t%.3f\t%.f6\t"%(e.name, e.Eff(det.band_center), e.Ip(det.band_center))
-
-    geta2(elements, det)
-    
-
     
     freqs, UPspecs, UPout, PPout = ps.A4Prop(elements, det ,hwpIndex)
 
     incPow = map(lambda x : th.powFromSpec(freqs, x), UPspecs)
 
     pW_per_Kcmb = th.dPdT(elements, det)*pW
-
+    effs = [e.Eff(det.band_center) for e in elements[1:]]
+    print effs
+    cumEff = reduce(lambda x, y: x * y, effs)
 
     #######################################################
     ## Print table
@@ -114,18 +130,17 @@ def runModel(expDir, bandID, hwpIndex = 9, lensIP = .0004, writeFile = False):
         outputString +=  "%-8s\t\t%e\t\t%e\t\t%e\n"%(elements[i].name, incPow[i]*pW, UPout[i]*pW, PPout[i]*pW)
 
     outputString +=  "\n%e pW / Kcmb\n"%pW_per_Kcmb
+    outputString += "Telescope Efficiency: %e"%(cumEff)
     outputString +=  "\nFinal output up:\t%e pW \t %e Kcmb\n"%(sum(UPout)*pW, sum(UPout)*pW / pW_per_Kcmb)
     outputString +=  "Final output pp:\t%e pW \t %e Kcmb\n" %(sum(PPout)*pW,  sum(PPout)*pW / pW_per_Kcmb)
-
     print outputString
 
     if writeFile:
         fname = expDir + "%dGHz_opticalPowerTable.txt"%(det.band_center/GHz)
         f = open(fname, 'w')
         f.write( outputString)
-        f.close(
-)
-    return det.band_center/GHz, sum(PPout)*pW, sum(PPout)*pW/pW_per_Kcmb, elements
+        f.close()
+    return det, elements, sum(PPout)*pW, sum(PPout)*pW/pW_per_Kcmb
 
 def toTeXTable(table, acc = 4):
     out_string = ""
@@ -171,22 +186,60 @@ def runAll(fileDir):
     print toTeXTable(tab_K, 4)
 
 if __name__=="__main__":
-    # runModel("Experiments/Comparisons/ebex/LargeTelescope/", 1, False) #---    Run Ebex Comparison
+#     runModel("Experiments/Comparisons/ebex/LargeTelescope/", 1, False) #---    Run Ebex Comparison
     #runModel("Experiments/Comparisons/pb", 1, False) #---    Run PB Comparison
-    for i in [1]:
+
+    runModel("Experiments/small_aperture/LargeTelescope/", 2, writeFile = False, theta = np.deg2rad(30./2))
+#    runModel("Experiments/V2_dichroic/45cm/HF_45cm_3waf_silicon/LargeTelescope/", 1, writeFile = False,  hwpIndex=9 )
+#    
+#    
+#    
+#    
+#    powEntrance = [[],[]]
+#    powerCMB = [[],[]].
+#    for theta in map(np.deg2rad, [7.5, 10., 12.5, 15.]):
+#         for i in [1,2]:
+#             expDir = "Experiments/small_aperture/LargeTelescope/"
+#             
+#             det, elements, powAtDetector, powCMB = runModel(expDir, i, writeFile = False, theta = theta, hwpIndex = 9)             
+#             
+#             telEff =  reduce((lambda x, y : x * y), [e.Eff(det.band_center) for e in elements[2:]])
+#             
+#             powEntrance[i-1] += [powAtDetector / telEff]
+#             powerCMB[i-1] += [powCMB]
+     
+#     
         
-#        expDir = "Experiments/small_aperture/LargeTelescope/"
-        expDir = "Experiments/V2_dichroic/45cm/MF_45cm_3waf_silicon/LargeTelescope/"
-        
-        band_center, powAtDetector, powCMB, elements = runModel(expDir, i, writeFile = False)
-        telEff =  reduce((lambda x, y : x * y), [e.Eff(band_center) for e in elements[2:]])
-        
-        print "band_center: %d:"%(band_center)
-        print "Power at Det: \t %e pW"%(powAtDetector)
-        print "Power (pW):\t%e pW" % (powAtDetector/ telEff)
-        print "Power (Kcmb):\t%e"%powCMB
-        print ""
-        
+     
+##    
+#     powerEntrance = [[],[]]
+#     powerCMB = [[],[]]
+#     for hwpi in [8, 9]:
+#         for i in [1,2]:
+#            
+#             expDir = "Experiments/small_aperture/LargeTelescope/"
+#             expDir = "Experiments/V2_dichroic/45cm/MF_45cm_3waf_silicon/LargeTelescope/"
+#            
+#             det, elements, powAtDetector, powCMB = runModel(expDir, i, writeFile = False, hwpIndex = hwpi)
+##             geta2(elements, det)
+#             print det.band_center
+#             
+#             telEff =  reduce((lambda x, y : x * y), [e.Eff(det.band_center) for e in elements[2:]])
+#
+#             
+#             powerEntrance[hwpi - 8] += [powAtDetector / telEff]
+#             powerCMB[hwpi - 8] += [powCMB]
+#
+#            
+            
+
+ #            
+ #            print "band_center: %d:"%(band_center)
+ #            print "Power at Det: \t %e pW"%(powAtDetector)
+ #            print "Power (pW):\t%e pW" % (powAtDetector/ telEff)
+ #            print "Power (Kcmb):\t%e"%powCMB
+ #            print ""
+            
         
 
 

@@ -87,7 +87,7 @@ def f2Model(expDir, hwpi = 9,  writeFile = False):
         posFreqs = [30,40,90,150,220,230,280]
         hwpFreq = reduce(lambda x, y: (x if (abs(x - bc) < abs(y - bc)) else y), posFreqs)
 
-        incAngle = 15
+        incAngle = 8
         # Import mueller data file
         muellerDir = "Mueller_AR/"
     

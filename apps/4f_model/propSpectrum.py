@@ -1,9 +1,9 @@
 import numpy as np
 import thermo as th
-
+import matplotlib.pyplot as plt
 GHz = 1.e9 # GHz -> Hz
 pW = 1.e12 # W -> pW
-
+kB = 1.3806e-23
 
 
 
@@ -30,6 +30,8 @@ def A4Prop(optElements, det, hwpIndex):
 
         #Polarized emitted power and IP conversion power
         PPEmitted = th.weightedSpec(freqs,elem.temp,elem.pEmis)
+
+            
         ipPower = specs[-1]*map(elem.Ip, freqs) * map(elem.Eff, freqs) 
         # We don't care about pp created after HWP
         if i >= hwpIndex:
@@ -40,7 +42,14 @@ def A4Prop(optElements, det, hwpIndex):
         UPTotal = UPEmitted - ipPower
         PPTotal = PPEmitted + ipPower
         
-
+        
+        
+#        if elem.name == "Window":
+#            plt.plot(freqs, PPTotal)
+#            plt.plot(freqs, np.ones(len(freqs))* 2 *kB*elem.temp * elem.pEmis(det.band_center))
+#            print 2 *kB*elem.temp * elem.pEmis(det.band_center)
+#            plt.show()
+#            
 
         # Calculates the total efficiency of everything on detector side of element
 
@@ -52,7 +61,14 @@ def A4Prop(optElements, det, hwpIndex):
         else:
             cumEff = lambda f : 1
             cumPEff = lambda f : 1
-
+            
+            
+            
+            
+        if th.powFromSpec(freqs, PPEmitted)!= 0:
+            abc = th.powFromSpec(freqs, th.weightedSpec(freqs,elem.temp,1))
+            print elem.name, elem.pEmis(det.band_center)*abc * cumPEff(det.band_center)  
+            print elem.name, elem.pEmis(det.band_center)*abc * cumPEff(det.band_center)  / th.dPdT(optElements, det)
 
         # pEmitTot += abs(th.powFromSpec(freqs, cumPEff(freqs) * PPEmitted))
         # pIPTot += abs(th.powFromSpec(freqs, cumPEff(freqs) * ipPower))

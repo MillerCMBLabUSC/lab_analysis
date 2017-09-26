@@ -3,6 +3,7 @@ import thermo as th
 from scipy import interpolate
 from scipy import integrate as intg
 import Detector as dt
+import IPCalc
 
 
 # Units and Constants
@@ -139,7 +140,7 @@ class OpticalElement:
 
 
     def pEmis(self, freq):
-        return 0
+#        return 0
         return -self.Ip(freq)
 
 
@@ -156,21 +157,26 @@ class OpticalElement:
 
 
 
-
-def loadOpticalChain(opticsFile,det, lensIP = .0004):
+def loadOpticalChain(opticsFile,det, lensIP = .0004, theta = np.deg2rad(15./2)):
+    """
+    Returns list of optical elements from opticalChain.txt file.
+    
+    Parameters
+    --------
+    
+    opticsFile : string
+        optical chain file 
+    det : Detector
+        detector object of telescope
+    lensIP : float
+        IP of lenses in Large Aperture
+    theta : float [rad]
+        Incident angle for Small Aperture
+    
+    """
     data = np.loadtxt(opticsFile, dtype=np.str)
     keys = data[0]
-
         
-    if det.band_center < 100 * GHz:
-        windowIP = 1.20*10**(-3)
-        alumFip =  6.79*10**(-4)
-    else:
-        windowIP = 5.14*10**(-5)
-        alumFip =  7.03*10**(-4)
-
-#    windowIP = 0
-    
     chi = map(np.deg2rad, [25.7312, 19.5982])    
 
     mirrorNum = 0
@@ -188,10 +194,11 @@ def loadOpticalChain(opticsFile,det, lensIP = .0004):
 
         elif params["Element"] == "Lens":
             e.loadParams(params, det, ipVal = lensIP)
-        elif params["Element"] == "AluminaF":
-            e.loadParams(params, det, ipVal = alumFip)
-        elif params["Element"] == "Window":
-            e.loadParams(params, det, ipVal = windowIP)
+        elif params["Element"] == "AluminaF" and mirrorNum == 0:
+            e.loadParams(params, det, ipVal = IPCalc.getFilterIP(det.band_center, det.fbw, theta))
+        elif params["Element"] == "Window" and mirrorNum == 0: 
+            print det.band_center, det.fbw, theta
+            e.loadParams(params, det, ipVal = IPCalc.getWinIP(det.band_center, det.fbw, theta))
         else:
             e.loadParams(params, det)
 

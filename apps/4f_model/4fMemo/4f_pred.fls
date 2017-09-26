@@ -281,6 +281,7 @@ INPUT /usr/local/texlive/2016/texmf-dist/fonts/tfm/public/cm/cmex10.tfm
 INPUT /usr/local/texlive/2016/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm
 INPUT /usr/local/texlive/2016/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm10.tfm
 INPUT /usr/local/texlive/2016/texmf-dist/fonts/tfm/public/cm/cmbx12.tfm
+INPUT /usr/local/texlive/2016/texmf-dist/fonts/tfm/public/cm/cmbx10.tfm
 OUTPUT 4f_pred.pdf
 INPUT /usr/local/texlive/2016/texmf-var/fonts/map/pdftex/updmap/pdftex.map
 INPUT images/IncidentAngles.png
@@ -289,9 +290,9 @@ INPUT ./images/IncidentAngles.png
 INPUT images/pa2_polarization_fraction.png
 INPUT ./images/pa2_polarization_fraction.png
 INPUT ./images/pa2_polarization_fraction.png
-INPUT images/ip_vs_gap_filter_only.png
-INPUT ./images/ip_vs_gap_filter_only.png
-INPUT ./images/ip_vs_gap_filter_only.png
+INPUT images/ip_vs_gap_filter_only.pdf
+INPUT ./images/ip_vs_gap_filter_only.pdf
+INPUT ./images/ip_vs_gap_filter_only.pdf
 INPUT images/Mueller_150GHz.pdf
 INPUT ./images/Mueller_150GHz.pdf
 INPUT ./images/Mueller_150GHz.pdf
@@ -304,6 +305,7 @@ INPUT /usr/local/texlive/2016/texmf-dist/fonts/tfm/public/cm/cmtt10.tfm
 INPUT 4f_pred.aux
 INPUT 4f_pred.run.xml
 OUTPUT 4f_pred.run.xml
+INPUT /usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 INPUT /usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb
 INPUT /usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb
 INPUT /usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb
