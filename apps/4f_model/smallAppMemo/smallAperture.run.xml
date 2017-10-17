@@ -44,17 +44,15 @@
   <internal package="biblatex" priority="9" active="0">
     <generic>latex</generic>
     <provides type="dynamic">
-      <file>4f_pred.aux</file>
-      <file>4f_pred-blx.bib</file>
+      <file>smallAperture.aux</file>
+      <file>smallAperture-blx.bib</file>
     </provides>
     <requires type="dynamic">
-      <file>4f_pred.bbl</file>
+      <file>smallAperture.bbl</file>
     </requires>
     <requires type="static">
-      <file>blx-dm.def</file>
       <file>blx-compat.def</file>
-      <file>blx-bibtex.def</file>
-      <file>biblatex.def</file>
+      <file>biblatex_legacy.def</file>
       <file>numeric.bbx</file>
       <file>standard.bbx</file>
       <file>numeric.cbx</file>
@@ -67,20 +65,20 @@
     <cmdline>
       <binary>bibtex</binary>
       <option>-min-crossrefs 2</option>
-      <infile>4f_pred</infile>
+      <infile>smallAperture</infile>
     </cmdline>
     <input>
-      <file>4f_pred.aux</file>
+      <file>smallAperture.aux</file>
     </input>
     <output>
-      <file>4f_pred.bbl</file>
+      <file>smallAperture.bbl</file>
     </output>
     <provides type="dynamic">
-      <file>4f_pred.bbl</file>
+      <file>smallAperture.bbl</file>
     </provides>
     <requires type="dynamic">
-      <file>4f_pred.aux</file>
-      <file>4f_pred-blx.bib</file>
+      <file>smallAperture.aux</file>
+      <file>smallAperture-blx.bib</file>
     </requires>
     <requires type="editable">
       <file>4f_pred.bib</file>
