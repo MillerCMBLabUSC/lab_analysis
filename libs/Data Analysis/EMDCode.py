@@ -84,7 +84,7 @@ def splineEMD(x,resolution,inputResidual,step):
     plt.figure()                        
     plt.plot(t,recon-x)                 #plot the difference between the reconstructed signal minus the input signal
     
-       
+
     return imfs
    
 
@@ -241,7 +241,7 @@ def extrap(x,discreteMin,discreteMax):
     return (discreteMin,discreteMax)
 
 if __name__ == "__main__":
-    import simulate
+    from lab_analysis.libs.noise import simulate
     alpha = 1.0
     white_noise_sigma = 1.0
     length_ts = 5000
