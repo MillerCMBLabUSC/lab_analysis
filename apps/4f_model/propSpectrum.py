@@ -31,7 +31,7 @@ def A4Prop(optElements, det, hwpIndex):
         #Polarized emitted power and IP conversion power
         PPEmitted = th.weightedSpec(freqs,elem.temp,elem.pEmis)
 
-            
+        
         ipPower = specs[-1]*map(elem.Ip, freqs) * map(elem.Eff, freqs) 
         # We don't care about pp created after HWP
         if i >= hwpIndex:
@@ -43,7 +43,8 @@ def A4Prop(optElements, det, hwpIndex):
         PPTotal = PPEmitted + ipPower
         
         
-        
+        print elem.name, th.powFromSpec(freqs, specs[-1]) * pW, th.powFromSpec(freqs, ipPower) * pW,\
+            th.powFromSpec(freqs, PPEmitted)* pW, th.powFromSpec(freqs, PPTotal) * pW
 #        if elem.name == "Window":
 #            plt.plot(freqs, PPTotal)
 #            plt.plot(freqs, np.ones(len(freqs))* 2 *kB*elem.temp * elem.pEmis(det.band_center))
@@ -62,13 +63,15 @@ def A4Prop(optElements, det, hwpIndex):
             cumEff = lambda f : 1
             cumPEff = lambda f : 1
             
+        print cumPEff(det.band_center)
             
             
             
-        if th.powFromSpec(freqs, PPEmitted)!= 0:
-            abc = th.powFromSpec(freqs, th.weightedSpec(freqs,elem.temp,1))
-            print elem.name, elem.pEmis(det.band_center)*abc * cumPEff(det.band_center)  
-            print elem.name, elem.pEmis(det.band_center)*abc * cumPEff(det.band_center)  / th.dPdT(optElements, det)
+#            
+#        if th.powFromSpec(freqs, PPEmitted)!= 0:
+#            abc = th.powFromSpec(freqs, th.weightedSpec(freqs,elem.temp,1))
+#            print elem.name, elem.pEmis(det.band_center)*abc * cumPEff(det.band_center)  
+#            print elem.name, elem.pEmis(det.band_center)*abc * cumPEff(det.band_center)  / th.dPdT(optElements, det)
 
         # pEmitTot += abs(th.powFromSpec(freqs, cumPEff(freqs) * PPEmitted))
         # pIPTot += abs(th.powFromSpec(freqs, cumPEff(freqs) * ipPower))
