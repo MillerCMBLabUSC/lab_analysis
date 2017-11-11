@@ -1,29 +1,24 @@
 import numpy as np
-import ephem
 
 
 class SimulatorSettings:
 	def __init__(self):
-		#establishing scan parameters
+		#scan and simulation parameters
 		self.ra_0 = 4.91
 		self.dec_0 = 52.26 #degrees
 		self.ra_rng = 5 #degrees
 		self.dec_rng = 5 #degrees
 		self.dec_stp = 0.1 #degrees default was .2
-		#self.dt_scn = 0.0736 #degrees/sec default was .1
-		self.dt = 0.5 #data time interval default was .01
-		self.t_end = 1800.0 #seconds
-		#establishing detector parameters
-		#self.num_bolos = 1 #number of bolometers
-		#each bolo is an ephem observer, making certain calculations easier
-		self.bolo1 = ephem.Observer() #this one is currently set to USC
-		self.bolo1.lat = "34.019579"
-		self.bolo1.lon = "-118.286926"
+		self.dt = 0.2 #data time interval default was .01
+		self.t_end = 3600.0 #seconds
 		
-		self.bolo2 = ephem.Observer() #this one is currently set to 2km away from bolo1
-		self.bolo2.lat = "34.019579"
-		self.bolo2.lon = "-118.27"
+		#NET and noise settings
+		self.NET_from_POLARBEAR = 480e-6 #K*sqrt(s)
+		self.NET_from_ACT = 6e-6 #K*sqrt(s)
+		self.NET_dict = {'POLARBEAR': self.NET_from_POLARBEAR,
+				'ACT': self.NET_from_ACT}  #can add more NET values to dict
 		
-		 
+		self.NET_from = 'ACT' #can change to 'POLARBEAR' 'ACT' etc.
+		self.NET = self.NET_dict.get(self.NET_from)
 		
 		

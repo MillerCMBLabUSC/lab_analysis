@@ -12,43 +12,35 @@ from lab_analysis.apps.simulation import default_settings
 from lab_analysis.apps.simulation import pointing
 from lab_analysis.libs.units.angles import *
 
-np.set_printoptions(edgeitems = 50)
 
 #class Simulator(lab_app.App):
 class Simulator(object):
 		
 	def run(self):
-		bolos = 1
-		t_end = 1800.  #seconds
-		dt = 0.5       #seconds
+		self.settings = default_settings.SimulatorSettings()
+		bolos = 1 
+		#t_end = 1800.  #seconds
+		#dt = 0.5       #seconds
 		f_hwp = 2      #Hz
-		times = np.linspace(0, t_end, t_end/dt)
-		maps = healpy.read_map(self.load_map('commander_1024_full'), field = (0, 1, 2))
+		times = np.linspace(0, self.settings.t_end, self.settings.t_end/self.settings.dt)
+		maps = healpy.read_map(self.load_map('nilc_1024_full'), field = (0, 1, 2))
 		create_pointing = pointing.CreatePointing()
-		#boresight_pointing = create_pointing.make_boresight_pointing()
-		lats = from_degrees(np.arange(0, times.size)*4.0/times.size-2.0)
-		lons = np.zeros(times.size)
-		boresight_pointing = (lats, lons)
-		#self.fig, (self.ax1, self.ax2) = plt.subplots(2, 1)
+		boresight_pointing = create_pointing.make_boresight_pointing()
 		for bolo in range(0, bolos):
+		#for bolo in range(2, 3):
 			detector_pointing = self.rotate_boresight_pointing(boresight_pointing, bolo)
 			lat, lon = coordinates.eq_to_gal(detector_pointing[0], detector_pointing[1])
 			bolo_i = healpy.get_interp_val(maps[0], pl.pi/2.0-lat, lon)
-			self.plot_data(bolo, times, bolo_i)
 			bolo_q = healpy.get_interp_val(maps[1], pl.pi/2.0-lat, lon)
 			bolo_u = healpy.get_interp_val(maps[2], pl.pi/2.0-lat, lon)
 			bolo_alpha = 1/2. * pl.arctan2(bolo_u, bolo_q)
 			bolo_p = pl.sqrt(bolo_q**2 + bolo_u**2)/bolo_i
-			#hwp_angle = np.sin(4 * pl.pi * coordinates.wrap_to_2pi(times))
-			hwp_angle = np.sin(2*pl.pi * f_hwp * times)
-			bolo_alpha_resize = np.resize(bolo_alpha, np.shape(times))
-			bolo_i_resize = np.resize(bolo_i, np.shape(times))
-			bolo_p_resize = np.resize(bolo_p, np.shape(times))
-			data = 1/2.* (bolo_i_resize + bolo_p_resize * pl.cos(4*hwp_angle - 2*bolo_alpha_resize))
-			#data = self.add_hwpss(data)
-			#data = self.add_nonlinearity(data)
-			#data = self.add_noise(data)
-			
+			self.hwp_angle = np.sin(2*pl.pi * f_hwp * times)
+			data = 1/2.* (bolo_i + bolo_p * pl.cos(4*self.hwp_angle - 2*bolo_alpha))
+			data = self.add_hwpss(times, data, self.hwp_angle)
+			data = self.add_nonlinearity(data)
+			data = self.add_noise(data)
+			self.plot_data(times, data)
 			
 		plt.show()	
 		
@@ -68,16 +60,6 @@ class Simulator(object):
 		boresight_pointing = tuple(boresight_pointing)
 		return boresight_pointing
 	
-	def unlink_wrap(self, dat, lims=[0, 2*pl.pi], thresh = 0.95):
-		#this makes sure that when data wraps from 2pi to 0, it does not create horizontal streaks across the graph
-		#only necessary when plotting data with lines
-		jump = np.nonzero(np.abs(np.diff(dat)) > ((lims[1] - lims[0]) * thresh))[0]
-		lasti = 0
-		for ind in jump:
-			yield slice(lasti, ind + 1)
-			lasti = ind + 1
-		yield slice(lasti, len(dat))
-	
 	def load_map(self, map_name):
 		dict = {'commander_1024_full':'/home/rashmi/maps/planck_commander_1024_full_test.fits',
 			'nilc_1024_full':'/home/rashmi/maps/planck_nilc_1024_full_test.fits',
@@ -92,20 +74,25 @@ class Simulator(object):
 		return compressed_signal + signal_min
 	
 	def add_noise(self, signal):
-		noise = scipy.stats.norm.rvs(scale = np.std(signal), size = signal.size)
+		sigma = self.settings.NET / pl.sqrt(self.settings.dt)
+		noise = scipy.stats.norm.rvs(scale = sigma, size = signal.size)
 		return signal + noise
 	
-	def plot_data(self, bolo_num, times, data_to_plot):
-		#the below is only necessary when plotting data with lines
-		#lims = [0, times[-1]]
-		#for slc in self.unlink_wrap(times, lims):
-		#	plt.plot(times[slc], data_to_plot[slc], 'g,')
-		plt.axhline(linewidth = 0.5, color = 'k')
-		plt.plot(times, data_to_plot,'.', markersize = 1.5)
+	def add_hwpss(self, times, signal, hwp_angle):
+		#approximation we are using for now: A1 = 50mK, A2 = 100, A4 = 200. All other coeffs = 0.
+		hwpss = 0.05*pl.cos(hwp_angle) + 0.1*pl.cos(2*hwp_angle) + 0.2*pl.cos(4*hwp_angle)
+		return signal + hwpss
 	
+	
+	def plot_data(self, times, data_to_plot):
+		plt.axhline(linewidth = 0.5, color = 'k')
+		#plt.plot(times, data_to_plot, markersize = 1.5)
+		plt.plot(times, data_to_plot,'.', markersize = 1.5)
+		plt.xlabel('Time (s)')
+		plt.ylabel('K_cmb')
 	#def make_map(self, data, detector_pointing):
-		
-		
+
+
 
 if __name__ == "__main__":
 	simulator = Simulator()
