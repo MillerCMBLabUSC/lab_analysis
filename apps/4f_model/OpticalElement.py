@@ -47,6 +47,7 @@ class OpticalElement:
         self.spill = 0
         self.refl = 0
         self.ipVal = None
+        self.polAbs = None
     # Loads an optical element from an atmosphere file
     def loadAtm(self, atmFile, det):
         freqs, temps, trans = np.loadtxt(atmFile, dtype=np.float, unpack=True, usecols=[0, 2, 3]) #frequency/efficiency pairs from input file
@@ -62,9 +63,10 @@ class OpticalElement:
         self.fs = freqs
         self.ts = trans
         self.ipVal = None
+        self.polAbs = None
 
     #Loads an optical element from 
-    def loadParams(self, params, det, chi = None, ipVal = None):
+    def loadParams(self, params, det, chi = None, ipVal = None, polAbs = None):
         #Detector Parameters
         self.det = det
 
@@ -83,6 +85,7 @@ class OpticalElement:
 
         # Parameters not included in opticalChain file
         self.ipVal = ipVal
+        self.polAbs = polAbs
         self.chi = chi
 
     #Get element Ip 
@@ -100,7 +103,7 @@ class OpticalElement:
                 print "IP values must be defined for lenses"
                 return
 
-            return self.ipVal
+            return abs(self.ipVal)
 
         if self.ipVal:
             return self.ipVal
@@ -140,8 +143,9 @@ class OpticalElement:
 
 
     def pEmis(self, freq):
-#        return 0
-        return -self.Ip(freq)
+        if self.polAbs == None:
+            return 0
+        return -abs(self.polAbs)
 
 
     def _toFloat(self, val, bid= None, unit=1.0):
@@ -195,10 +199,11 @@ def loadOpticalChain(opticsFile,det, lensIP = .0004, theta = np.deg2rad(15./2)):
         elif params["Element"] == "Lens":
             e.loadParams(params, det, ipVal = lensIP)
         elif params["Element"] == "AluminaF" and mirrorNum == 0:
-            e.loadParams(params, det, ipVal = IPCalc.getFilterIP(det.band_center, det.fbw, theta))
+            (ip, polAbs) = IPCalc.getFilterIP(det.band_center, det.fbw, theta)
+            e.loadParams(params, det, ipVal = ip, polAbs = polAbs)
         elif params["Element"] == "Window" and mirrorNum == 0: 
-            print det.band_center, det.fbw, theta
-            e.loadParams(params, det, ipVal = IPCalc.getWinIP(det.band_center, det.fbw, theta))
+            (ip, polAbs) = IPCalc.getWinIP(det.band_center, det.fbw, theta)
+            e.loadParams(params, det, ipVal = ip, polAbs = polAbs)
         else:
             e.loadParams(params, det)
 

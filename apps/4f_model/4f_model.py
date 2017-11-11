@@ -30,7 +30,7 @@ def geta2(elements, det):
     print "-"*20
     print "Total a4: %.3f %%\n"%(a2tot * 100)
 
-def runModel(expDir, bandID, hwpIndex = 9, lensIP = .0004, theta =  0.1308, writeFile = False):
+def runModel(expDir, bandID, hwpIndex = 9, lensIP = .0004, theta =  0.1308, writeFile = False, printChain = False):
     """ Gets A4 for specified experiment
     
     Parameters
@@ -116,7 +116,7 @@ def runModel(expDir, bandID, hwpIndex = 9, lensIP = .0004, theta =  0.1308, writ
 
     pW_per_Kcmb = th.dPdT(elements, det)*pW
     effs = [e.Eff(det.band_center) for e in elements[1:]]
-    print effs
+#    print effs
     cumEff = reduce(lambda x, y: x * y, effs)
 
     #######################################################
@@ -133,7 +133,8 @@ def runModel(expDir, bandID, hwpIndex = 9, lensIP = .0004, theta =  0.1308, writ
     outputString += "Telescope Efficiency: %e"%(cumEff)
     outputString +=  "\nFinal output up:\t%e pW \t %e Kcmb\n"%(sum(UPout)*pW, sum(UPout)*pW / pW_per_Kcmb)
     outputString +=  "Final output pp:\t%e pW \t %e Kcmb\n" %(sum(PPout)*pW,  sum(PPout)*pW / pW_per_Kcmb)
-    print outputString
+    if printChain:
+        print outputString
 
     if writeFile:
         fname = expDir + "%dGHz_opticalPowerTable.txt"%(det.band_center/GHz)
@@ -142,17 +143,13 @@ def runModel(expDir, bandID, hwpIndex = 9, lensIP = .0004, theta =  0.1308, writ
         f.close()
     return det, elements, sum(PPout)*pW, sum(PPout)*pW/pW_per_Kcmb
 
-def toTeXTable(table, acc = 4):
-    out_string = ""
-    keys = sorted(table.iterkeys())
-
-    for k in keys:
-        out_string += "%.1f & "%k
-        for i in table[k]:
-            out_string += " " +  ", ".join(map(lambda x : str(round(x,acc)) , i)) + " & "
-        out_string += "\\\\ \n"
-
-    return out_string
+def toTeXTable(table):
+    output = ""
+    for row in table:
+        strow = map(lambda x: "%.3f"%x, row)
+        output +=  " & ".join(strow) + " \\\\\n"
+    return output
+    
 
 
 def runAll(fileDir):
@@ -189,27 +186,35 @@ if __name__=="__main__":
 #     runModel("Experiments/Comparisons/ebex/LargeTelescope/", 1, False) #---    Run Ebex Comparison
     #runModel("Experiments/Comparisons/pb", 1, False) #---    Run PB Comparison
 
-    runModel("Experiments/small_aperture/LargeTelescope/", 2, writeFile = False, theta = np.deg2rad(30./2))
+    det,elements,_,_ = runModel("Experiments/small_aperture/LargeTelescope/", 2, writeFile = False, theta = np.deg2rad(30./2), printChain = True)
+    
+    
+    
 #    runModel("Experiments/V2_dichroic/45cm/HF_45cm_3waf_silicon/LargeTelescope/", 1, writeFile = False,  hwpIndex=9 )
 #    
 #    
 #    
 #    
 #    powEntrance = [[],[]]
-#    powerCMB = [[],[]].
-#    for theta in map(np.deg2rad, [7.5, 10., 12.5, 15.]):
+#    powerCMB = [[],[]]
+#    thetas = [7.5, 10., 12.5, 15.]
+#    for theta in map(np.deg2rad, thetas):
 #         for i in [1,2]:
 #             expDir = "Experiments/small_aperture/LargeTelescope/"
 #             
-#             det, elements, powAtDetector, powCMB = runModel(expDir, i, writeFile = False, theta = theta, hwpIndex = 9)             
+#             det, elements, powAtDetector, powCMB = runModel(expDir, i, writeFile = False, theta = theta, hwpIndex = 9, printChain = False)             
 #             
 #             telEff =  reduce((lambda x, y : x * y), [e.Eff(det.band_center) for e in elements[2:]])
 #             
 #             powEntrance[i-1] += [powAtDetector / telEff]
 #             powerCMB[i-1] += [powCMB]
-     
 #     
-        
+#    l = [thetas, powEntrance[0], powEntrance[1], powerCMB[0], powerCMB[1]]
+#    print  toTeXTable(np.asarray(l).T)
+#    
+#    
+#     
+#        
      
 ##    
 #     powerEntrance = [[],[]]

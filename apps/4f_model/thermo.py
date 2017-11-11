@@ -76,7 +76,7 @@ def aniPowSpec(emissivity, freq, temp=None):
 def dPdT(elements, det):
     """Conversion from Power on detector to Kcmb"""
     totalEff = lambda f : reduce((lambda x,y : x * y), map(lambda e : e.Eff(f), elements[1:]))
-    print "Total Efficiency: %e"%totalEff(det.band_center)
+#    print "Total Efficiency: %e"%totalEff(det.band_center)
     return intg.quad(lambda x: aniPowSpec(totalEff(x), x, Tcmb), det.flo, det.fhi)[0]
     
 

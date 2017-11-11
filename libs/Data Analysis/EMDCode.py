@@ -9,6 +9,8 @@ step   - Gradient step size (normally is set to 1, can take values 0-1)
 import numpy as np
 from scipy.interpolate import CubicSpline
 import math
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 
@@ -57,6 +59,9 @@ def splineEMD(x,resolution,inputResidual,step):
             topenv = CubicSpline(parabolicMax[:,0],parabolicMax[:,1])
             botenv = CubicSpline(parabolicMin[:,0],parabolicMin[:,1])
             mean = (topenv(t) + botenv(t))/2
+
+        plt.figure()
+        plt.plot(t,botenv,t,-botenv,t,iImf)
         iImf = np.array(iImf)
         imfs = np.append(imfs,iImf,axis=0)
         count = count + 1
@@ -76,15 +81,15 @@ def splineEMD(x,resolution,inputResidual,step):
     imfs = np.array(imfs) #array with imfs and residual in last row
     imfs = imfs.reshape(count,int(len(x)))
     
-    
     recon = np.zeros((100,))            #create empty reconstructed matrix
     for i in range(len(imfs)):
         recon = recon + imfs[i]         #add the Imfs and residual together
+        #plt.plot(t,imfs[i])
         
-    plt.figure()                        
-    plt.plot(t,recon-x)                 #plot the difference between the reconstructed signal minus the input signal
-    
-       
+    #plt.figure()
+    #plt.plot(t,recon-x)                 #plot the difference between the reconstructed signal minus the input signal
+    #plt.show()
+
     return imfs
    
 
@@ -241,14 +246,13 @@ def extrap(x,discreteMin,discreteMax):
     return (discreteMin,discreteMax)
 
 if __name__ == "__main__":
-    import simulate
+    from lab_analysis.libs.noise import simulate
     alpha = 1.0
     white_noise_sigma = 1.0
-    length_ts = 5000
+    length_ts = 500
     f_knee = 2.0
     sample_rate = 100.0
     noise = simulate.simulate_noise(alpha, white_noise_sigma,length_ts, f_knee, sample_rate)
-    noise = noise[0:100]
     vec = splineEMD(noise,50,40,1)
     
 
