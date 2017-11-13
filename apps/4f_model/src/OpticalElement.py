@@ -2,6 +2,8 @@ import numpy as np
 import thermo as th
 from scipy import interpolate
 from scipy import integrate as intg
+import matplotlib.pyplot as plt
+
 import Detector as dt
 import IPCalc
 
@@ -64,6 +66,13 @@ class OpticalElement:
         self.ts = trans
         self.ipVal = None
         self.polAbs = None
+        
+    def loadHWP(self, hwpFile, det, temp):
+        self.name = "HWP"
+        self.temp = temp
+        
+        self.fs, self.T, self.rho, self.c, self.s = np.loadtxt(hwpFile, dtype=np.float, unpack=True)
+        
 
     #Loads an optical element from 
     def loadParams(self, params, det, chi = None, ipVal = None, polAbs = None):
@@ -104,7 +113,8 @@ class OpticalElement:
                 return
 
             return abs(self.ipVal)
-
+        elif self.name == "HWP":
+            return np.interp(freq, self.fs, self.rho)
         if self.ipVal:
             return self.ipVal
         return 0
@@ -114,6 +124,8 @@ class OpticalElement:
             return np.interp(freq,self.fs,self.ts) 
         elif self.name == "Aperture":
             return th.spillEff(self.det.pixSize, self.det.f_num, self.det.waistFact, self.det.band_center)
+        elif self.name == "HWP":
+            return np.interp(freq, self.fs, self.T)
         else:
             if self.absorb == 0 and self.lossTan != 0:
                 ab = self.Emis( freq)
