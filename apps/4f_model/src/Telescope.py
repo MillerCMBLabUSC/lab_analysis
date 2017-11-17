@@ -58,9 +58,10 @@ class Telescope:
         #Gets HWP index
 
         try:
-            hwpIndex = [e.name for e in self.elements].index("HWP")
+            self.hwpIndex = [e.name for e in self.elements].index("HWP")
         except:
             if hwpi:
+                self.hwpIndex = hwpi
                 e = opt.OpticalElement()
                 e.load("HWP", self.elements[hwpi - 1].temp, 0)
                 self.elements.insert(hwpi, e)
@@ -69,22 +70,29 @@ class Telescope:
         
         hwpFile = "../HWP_Mueller/Mueller_AR/Mueller_V2_nu150.0_no3p068_ne3p402_ARcoat_thetain0.0.txt"
         e = opt.OpticalElement()
-        e.loadHWP(hwpFile, self.det, self.elements[hwpIndex].temp)
-        self.elements[hwpIndex] = e
-        print self.det.fbw
-        print self.det.flo, self.det.fhi
+        e.loadHWP(hwpFile, self.det, self.elements[self.hwpIndex].temp)
+        self.elements[self.hwpIndex] = e
         
-        freqs = np.linspace(self.det.flo, self.det.fhi, 100)
-        print np.trapz(map(e.Ip, freqs), freqs) / (freqs[-1] - freqs[0])
         
-       
         self.propSpectrum()
+        self.geta2()
+        self.getA2()
+        self.geta4()
+        self.getA4()
+        
+        self.dPdT = th.dPdT(self.elements, self.det)
+
+        print self.A4 * pW
         
         
-#        print th.powFromSpec(self.freqs , self.UPspecs[3] - self.UPspecs[2])*pW
+    def cumEff(self, index, freq):
+        cumEff = 1.
+        for i in range(index + 1, len(self.elements)):
+            cumEff *= self.elements[i].Eff(freq)
+        
+        return cumEff
         
         
-#        
     def propSpectrum(self):
         N = 400 #subdivision of frequency range
         self.freqs = np.linspace(self.det.flo, self.det.fhi, N) #Frequency array
@@ -96,117 +104,40 @@ class Telescope:
             UPTransmitted = self.UPspecs[-1] * map(el.Eff, self.freqs)
             
             self.UPspecs.append(UPEmitted + UPTransmitted)
+        
+    def geta2(self):
+        hwp= self.elements[self.hwpIndex]
+        self.a2 = abs(np.trapz(map(hwp.Ip, self.freqs), self.freqs) / (self.det.fhi -self.det.flo))
+        
+    def getA2(self):
+        hwp = self.elements[self.hwpIndex]
+        ppEmitted = th.weightedSpec(self.freqs, hwp.temp, hwp.pEmis)
+        ppTransmitted = map(hwp.Ip, self.freqs)*self.UPspecs[self.hwpIndex]
+        self.A2 = th.powFromSpec(self.freqs, (ppEmitted + ppTransmitted)* map(lambda x : self.cumEff(self.hwpIndex, x), self.freqs)) 
+        
+    def geta4(self):
+        self.a4 = 0
+        for e in self.elements:
+            if e.name == "HWP":
+                break
+            self.a4 += e.Ip(self.det.band_center)
+        
+    def getA4(self):
+        self.A4 = 0
+        for (i, e) in enumerate(self.elements):
+            if e.name=="HWP":
+                break
             
-        
-        
-#        
-#           for i in range(len(optElements)):
-#        elem = optElements[i]
-#        
-#        #Unpolarized and polarized spectrum of the element
-#        UPEmitted = th.weightedSpec(freqs,elem.temp,elem.Emis)
-#        UPTrans = specs[-1] * map(elem.Eff, freqs)
-#
-#        #Polarized emitted power and IP conversion power
-#        PPEmitted = th.weightedSpec(freqs,elem.temp,elem.pEmis)
-#
-#        
-#        ipPower = specs[-1]*map(elem.Ip, freqs) * map(elem.Eff, freqs) 
-#        # We don't care about pp created after HWP
-#        if i >= hwpIndex:
-#            PPEmitted = np.zeros(N)
-#            ipPower   = np.zeros(N)
-#
-#        #Total U/P power introduced by each element
-#        UPTotal = UPEmitted - ipPower
-#        PPTotal = PPEmitted + ipPower
-#        
-#        
-#        print elem.name, th.powFromSpec(freqs, specs[-1]) * pW, th.powFromSpec(freqs, ipPower) * pW,\
-#            th.powFromSpec(freqs, PPEmitted)* pW, th.powFromSpec(freqs, PPTotal) * pW
-##        if elem.name == "Window":
-##            plt.plot(freqs, PPTotal)
-##            plt.plot(freqs, np.ones(len(freqs))* 2 *kB*elem.temp * elem.pEmis(det.band_center))
-##            print 2 *kB*elem.temp * elem.pEmis(det.band_center)
-##            plt.show()
-##            
-#
-#        # Calculates the total efficiency of everything on detector side of element
-#
-#        effs = lambda f : map(lambda x : x.Eff(f), optElements[i+1:])
-#        peffs = lambda f : map(lambda x : x.pEff(f), optElements[i+1:])
-#        if len(effs(det.band_center)) > 0:
-#            cumEff = lambda f : reduce((lambda x, y: x*y), effs(f))
-#            cumPEff = lambda f : reduce((lambda x, y: x*y), effs(f))
-#        else:
-#            cumEff = lambda f : 1
-#            cumPEff = lambda f : 1
-#            
-#        print cumPEff(det.band_center)
-#            
-#            
-#            
-##            
-##        if th.powFromSpec(freqs, PPEmitted)!= 0:
-##            abc = th.powFromSpec(freqs, th.weightedSpec(freqs,elem.temp,1))
-##            print elem.name, elem.pEmis(det.band_center)*abc * cumPEff(det.band_center)  
-##            print elem.name, elem.pEmis(det.band_center)*abc * cumPEff(det.band_center)  / th.dPdT(optElements, det)
-#
-#        # pEmitTot += abs(th.powFromSpec(freqs, cumPEff(freqs) * PPEmitted))
-#        # pIPTot += abs(th.powFromSpec(freqs, cumPEff(freqs) * ipPower))
-#
-#
-#        #Power spectrum seen by the detector coming from this element
-#        detUPspec = cumEff(freqs) * UPTotal
-#        detPPspec = cumPEff(freqs) * PPTotal
-#        
-#        # Total Power seen by the detector coming from this element.
-#        detUP = abs(.5 * th.powFromSpec(freqs, detUPspec))  # 1/2 because we are goint UP -> PP
-#        detPP = abs(th.powFromSpec(freqs, detPPspec))
-#        
-#        
-#        specs.append(UPTotal + UPTrans)
-#        UPout.append(detUP)
-#        PPout.append(detPP)
-#
-#        
-#        freqs, UPspecs, UPout, PPout = ps.A4Prop(elements, det ,hwpIndex)
-#    
-#        incPow = map(lambda x : th.powFromSpec(freqs, x), UPspecs)
-#    
-#        pW_per_Kcmb = th.dPdT(elements, det)*pW
-#        effs = [e.Eff(det.band_center) for e in elements[1:]]
-#    #    print effs
-#        cumEff = reduce(lambda x, y: x * y, effs)
-#
-#
+            ppEmitted = th.weightedSpec(self.freqs, e.temp, e.pEmis)
+            ppTransmitted = map(e.Ip, self.freqs)*self.UPspecs[i]
+            ppTotal = th.powFromSpec(self.freqs, (ppEmitted + ppTransmitted)* map(lambda x : self.cumEff(i, x), self.freqs))
+            if ppTotal!=0:
+                print e.name, ppTotal*pW
+            self.A4 += ppTotal
+            
+    
 
-#
-#    #######################################################
-#    ## Print table
-#    #######################################################
-#    outputString +=  "bandID: %d \t freq: %.2f GHz\n"%(det.bid, det.band_center/GHz)
-#    outputString +=  "Name\t\t\tIncident UP(pW)\t\tUP Output (pW) \t\tPP Output (pW)\n"
-#    outputString +=  "-"*70 + "\n"
-#
-#    for i in range(len(elements)):
-#        outputString +=  "%-8s\t\t%e\t\t%e\t\t%e\n"%(elements[i].name, incPow[i]*pW, UPout[i]*pW, PPout[i]*pW)
-#
-#    outputString +=  "\n%e pW / Kcmb\n"%pW_per_Kcmb
-#    outputString += "Telescope Efficiency: %e"%(cumEff)
-#    outputString +=  "\nFinal output up:\t%e pW \t %e Kcmb\n"%(sum(UPout)*pW, sum(UPout)*pW / pW_per_Kcmb)
-#    outputString +=  "Final output pp:\t%e pW \t %e Kcmb\n" %(sum(PPout)*pW,  sum(PPout)*pW / pW_per_Kcmb)
-#    if printChain:
-#        print outputString
-#
-#    if writeFile:
-#        fname = expDir + "%dGHz_opticalPowerTable.txt"%(det.band_center/GHz)
-#        f = open(fname, 'w')
-#        f.write( outputString)
-#        f.close()
-#    return det, elements, sum(PPout)*pW, sum(PPout)*pW/pW_per_Kcmb
-#
-#
+
 
 
 if __name__=="__main__":
@@ -218,7 +149,7 @@ if __name__=="__main__":
     expDir = "../Experiments/small_aperture/LargeTelescope/"
     atmFile = "Atacama_1000um_60deg.txt"
     bid = 2
-    opts = {'theta': np.deg2rad(15.)}
+    opts = {'theta': np.deg2rad(15.0)}
     tel = Telescope(expDir, atmFile, bid, **opts)
     
 #    runModel("Experiments/V2_dichroic/45cm/HF_45cm_3waf_silicon/LargeTelescope/", 1, writeFile = False,  hwpIndex=9 )

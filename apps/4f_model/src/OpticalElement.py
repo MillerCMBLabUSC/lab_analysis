@@ -70,7 +70,7 @@ class OpticalElement:
     def loadHWP(self, hwpFile, det, temp):
         self.name = "HWP"
         self.temp = temp
-        
+        self.polAbs = None
         self.fs, self.T, self.rho, self.c, self.s = np.loadtxt(hwpFile, dtype=np.float, unpack=True)
         
 

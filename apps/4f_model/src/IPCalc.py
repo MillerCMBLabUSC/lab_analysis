@@ -222,7 +222,7 @@ if __name__ == "__main__":
         wIP1, fIP1 = getWinIP(bc[0], fbw[0], t)[0]*100, getFilterIP(bc[0], fbw[0], t)[0]*100
         wIP2, fIP2 = getWinIP(bc[1], fbw[1], t)[0]*100, getFilterIP(bc[1], fbw[1], t)[0]*100
         
-        print "%.1f & %.3f & %.3f & %.3f & %.3f & %.3f & %.3f\\\\"%(np.rad2deg(t), wIP1, wIP2, fIP1, fIP2, wIP1 + 2 * fIP2, wIP2 + 2 * fIP2)
+        print "%.1f & %.3f & %.3f & %.3f & %.3f & %.3f & %.3f\\\\"%(np.rad2deg(t), wIP1, wIP2, fIP1, fIP2, wIP1 + 2 * fIP1, wIP2 + 2 * fIP2)
         
         
 
