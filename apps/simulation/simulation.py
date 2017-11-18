@@ -27,22 +27,25 @@ class Simulator(object):
 		create_pointing = pointing.CreatePointing()
 		boresight_pointing = create_pointing.make_boresight_pointing()
 		for bolo in range(0, bolos):
-		#for bolo in range(2, 3):
+			self.run_one_bolo(bolo, boresight_pointing, maps, f_hwp, times)
+			
+		plt.show()
+	
+	def run_one_bolo(self, bolo, boresight_pointing, maps, f_hwp, times):
 			detector_pointing = self.rotate_boresight_pointing(boresight_pointing, bolo)
 			lat, lon = coordinates.eq_to_gal(detector_pointing[0], detector_pointing[1])
-			bolo_i = healpy.get_interp_val(maps[0], pl.pi/2.0-lat, lon)
-			bolo_q = healpy.get_interp_val(maps[1], pl.pi/2.0-lat, lon)
-			bolo_u = healpy.get_interp_val(maps[2], pl.pi/2.0-lat, lon)
-			bolo_alpha = 1/2. * pl.arctan2(bolo_u, bolo_q)
-			bolo_p = pl.sqrt(bolo_q**2 + bolo_u**2)/bolo_i
-			self.hwp_angle = np.sin(2*pl.pi * f_hwp * times)
-			data = 1/2.* (bolo_i + bolo_p * pl.cos(4*self.hwp_angle - 2*bolo_alpha))
-			data = self.add_hwpss(times, data, self.hwp_angle)
-			data = self.add_nonlinearity(data)
-			data = self.add_noise(data)
-			self.plot_data(times, data)
-			
-		plt.show()	
+                        bolo_i = healpy.get_interp_val(maps[0], pl.pi/2.0-lat, lon)
+                        bolo_q = healpy.get_interp_val(maps[1], pl.pi/2.0-lat, lon)
+                        bolo_u = healpy.get_interp_val(maps[2], pl.pi/2.0-lat, lon)
+                        bolo_alpha = 1/2. * pl.arctan2(bolo_u, bolo_q)
+                        bolo_p = pl.sqrt(bolo_q**2 + bolo_u**2)/bolo_i
+                        hwp_angle = np.sin(2*pl.pi * f_hwp * times)
+                        data = 1/2.* (bolo_i + bolo_p * pl.cos(4*hwp_angle - 2*bolo_alpha))
+                        data = self.add_hwpss(times, data, hwp_angle)
+                        data = self.add_nonlinearity(data)
+                        data = self.add_noise(data)
+                        self.plot_data(times, data)
+
 		
 	def rotate_boresight_pointing(self, boresight_pointing, bolo_number):
 		#this is a basic rotation function. the three bolos are arranged in a triangle with base 0.02 (~2km) and height 0.02 (~2km)
