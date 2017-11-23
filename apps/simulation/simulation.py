@@ -18,48 +18,44 @@ class Simulator(object):
 		
 	def run(self):
 		self.settings = default_settings.SimulatorSettings()
-		bolos = 1 
-		#t_end = 1800.  #seconds
-		#dt = 0.5       #seconds
-		f_hwp = 2      #Hz
 		times = np.linspace(0, self.settings.t_end, self.settings.t_end/self.settings.dt)
 		maps = healpy.read_map(self.load_map('nilc_1024_full'), field = (0, 1, 2))
 		create_pointing = pointing.CreatePointing()
 		boresight_pointing = create_pointing.make_boresight_pointing()
-		for bolo in range(0, bolos):
-			self.run_one_bolo(bolo, boresight_pointing, maps, f_hwp, times)
+		for bolo in range(0, self.settings.num_bolos):
+			self.run_one_bolo(bolo, boresight_pointing, maps, times)
 			
 		plt.show()
 	
-	def run_one_bolo(self, bolo, boresight_pointing, maps, f_hwp, times):
-			detector_pointing = self.rotate_boresight_pointing(boresight_pointing, bolo)
-			lat, lon = coordinates.eq_to_gal(detector_pointing[0], detector_pointing[1])
-                        bolo_i = healpy.get_interp_val(maps[0], pl.pi/2.0-lat, lon)
-                        bolo_q = healpy.get_interp_val(maps[1], pl.pi/2.0-lat, lon)
-                        bolo_u = healpy.get_interp_val(maps[2], pl.pi/2.0-lat, lon)
-                        bolo_alpha = 1/2. * pl.arctan2(bolo_u, bolo_q)
-                        bolo_p = pl.sqrt(bolo_q**2 + bolo_u**2)/bolo_i
-                        hwp_angle = np.sin(2*pl.pi * f_hwp * times)
-                        data = 1/2.* (bolo_i + bolo_p * pl.cos(4*hwp_angle - 2*bolo_alpha))
-                        data = self.add_hwpss(times, data, hwp_angle)
-                        data = self.add_nonlinearity(data)
-                        data = self.add_noise(data)
-                        self.plot_data(times, data)
+	def run_one_bolo(self, bolo, boresight_pointing, maps, times):
+		detector_pointing = self.rotate_boresight_pointing(boresight_pointing, bolo)
+		lat, lon = coordinates.eq_to_gal(detector_pointing[0], detector_pointing[1])
+		bolo_i = healpy.get_interp_val(maps[0], pl.pi/2.0-lat, lon)
+		bolo_q = healpy.get_interp_val(maps[1], pl.pi/2.0-lat, lon)
+		bolo_u = healpy.get_interp_val(maps[2], pl.pi/2.0-lat, lon)
+		bolo_alpha = 1/2. * pl.arctan2(bolo_u, bolo_q)
+		bolo_p = pl.sqrt(bolo_q**2 + bolo_u**2)/bolo_i
+		hwp_angle = np.sin(2*pl.pi * self.settings.f_hwp * times)
+		data = 1/2.* (bolo_i + bolo_p * pl.cos(4*hwp_angle - 2*bolo_alpha))
+		data = self.add_hwpss(times, data, hwp_angle)
+		data = self.add_nonlinearity(data)
+		data = self.add_noise(data)
+		self.plot_data(times, data)
 
 		
 	def rotate_boresight_pointing(self, boresight_pointing, bolo_number):
-		#this is a basic rotation function. the three bolos are arranged in a triangle with base 0.02 (~2km) and height 0.02 (~2km)
+		#this is a basic rotation function. the three bolos are arranged in a triangle with base 0.005 (~50m) and height 0.005 (~50m)
 		#if a fourth bolo is added, it will be at the center of the triangle (the boresight pointing)
 		#a little clunky but I can turn this into a dictionary later with diff. adjustments depending on the number/arrangement of bolos
 		boresight_pointing = list(boresight_pointing)
 		if bolo_number == 0:
-			boresight_pointing[1] += 0.01
+			boresight_pointing[1] += 0.0025
 		elif bolo_number == 1:
-			boresight_pointing[0] += 0.01
-			boresight_pointing[1] -= 0.01
+			boresight_pointing[0] += 0.0025
+			boresight_pointing[1] -= 0.0025
 		elif bolo_number == 2:
-			boresight_pointing[0] -= 0.01
-			boresight_pointing[1] -= 0.01
+			boresight_pointing[0] -= 0.0025
+			boresight_pointing[1] -= 0.0025
 		boresight_pointing = tuple(boresight_pointing)
 		return boresight_pointing
 	

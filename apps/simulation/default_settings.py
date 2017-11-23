@@ -20,7 +20,9 @@ class SimulatorSettings:
 				'POLARBEAR2': self.NET_from_POLARBEAR2,
 				'ACT': self.NET_from_ACT}  #can add more NET values to dict
 		
-		self.NET_from = 'ACT' #can change to 'POLARBEAR' 'ACT' etc.
+		self.NET_from = 'POLARBEAR1' #can change to 'POLARBEAR' 'ACT' etc.
 		self.NET = self.NET_dict.get(self.NET_from)
 		
-		
+		#HWP and HWPSS settings
+		self.f_hwp = 2 #Hz
+		self.num_bolos = 1 
