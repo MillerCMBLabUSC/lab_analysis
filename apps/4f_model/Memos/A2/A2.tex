@@ -1,0 +1,114 @@
+\documentclass{article}
+\usepackage[margin=.9in]{geometry}              
+\geometry{letterpaper}
+\usepackage[parfill]{parskip}               
+\usepackage{amssymb,amsmath}
+\usepackage{amsthm}
+\usepackage{mathtools}
+\usepackage{enumerate}
+\usepackage{gensymb}
+\usepackage{tkz-graph}
+\usepackage{tikz}
+\usetikzlibrary{matrix}
+\usepackage{cancel}
+\usepackage[final]{pdfpages}
+\usepackage{tabularx}
+
+
+\usepackage[
+backend=bibtex,
+style=numeric,
+citestyle=numeric,
+maxbibnames=5,
+sorting=none]{biblatex}
+
+\bibliography{A2} 
+
+\makeatletter
+\def\blx@maxline{77}
+\makeatother
+
+
+\graphicspath{{images/}}
+
+\newenvironment{mycenter}[1][\topsep]
+  {\setlength{\topsep}{#1}\par\kern\topsep\centering}% \begin{mycenter}[<len>]
+  {\par\kern\topsep}% \end{mycenter}
+
+\newenvironment{problem}{\rightskip1in}{\begin{mycenter}[-2pt]\rule{1.0\textwidth}{.4pt}\end{mycenter}}
+ 
+\relpenalty=9999
+\binoppenalty=9999
+
+\theoremstyle{remark}
+\newtheorem*{claim}{\\Claim}
+\newtheorem*{lemma}{\\Lemma}
+\newcommand{\inv}{^{-1}}
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial#2}}
+\newcommand{\td}[2]{\frac{d#1}{d#2}}
+\newcommand{\tab}{\hspace*{2em}}
+\newcommand{\tn}[2]{\tensor{#1}{#2}}
+\newcommand{\bp}[1]{\left(#1\right)}
+\renewcommand{\t}[1]{\text{#1}}
+\newcommand{\mb}[1]{\mathbb{#1}}
+\newcommand{\mds}[1]{\mathds{#1}}
+\newcommand{\mc}[1]{\mathcal{#1}}
+\newcommand{\comp}[1]{\overline{#1}}
+\newcommand{\AI}{A^{(4)}_{0|<I_{\t{in}}>}}
+\newcommand{\A}[1]{A^{(#1)}}
+\newcommand{\lo}{\lambda_\t{opt}^{(4)}}
+\newcommand{\ip}{$I\rightarrow P$ }
+
+\newcolumntype{Y}{>{\centering\arraybackslash}X}
+
+\linespread{1.25}
+\renewcommand{\vec}[1]{\boldsymbol{#1}}
+\newcommand{\horrule}[1]{\rule{\linewidth}{#1}}
+\newcommand{\abs}[1]{\left|#1\right|}%
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+
+\title{A2 calculation}
+\author{}
+
+\begin{document}
+\maketitle
+
+In this document I will be recording the HWP emission models used, and will present data on the HWPSS 2f signal for a warm and cold HWP.
+
+\section{Absorption Model}
+[CITE PAPER]
+
+When an absorption coefficient is introduced into the HWP, the transmitted electric fields become:
+\[
+{{E_t}^e}' = e^{\alpha_e d} E_{t}^{e}  \qquad \t{and} \qquad{{E_t}^o}' = e^{\alpha_o d} E_t^o
+\]
+The amount of power absorbed is then:
+\[A^e(\nu) = 1 - \abs{{{E_t}^e}'}^2 - \abs{{{E_r}^e}'} \qquad \t{and} \qquad 
+A^o(\nu) = 1 - \abs{{{E_t}^o}'}^2 - \abs{{{E_r}^o}}
+\]
+giving us a differential absorption
+\[
+A^{e-o} = \frac{ \abs{{{E_t}^o}'}^2 -  \abs{{{E_t}^e}'}^2}{2}
+\sim
+\frac{1}{2}\left[(1 - e^{\alpha_e d})^2 - (1 - e^{\alpha_o d})^2\right] E_t^2
+\]
+
+The coefficients $\alpha_e$ and $\alpha_o$ are experimentally determined, and are fitted by the polynomials
+\[
+\alpha_e = 1.47\times 10^{-7} \nu^{2.2}
+\qquad
+\alpha_o = 8.7\times 10^{-5} \nu + 3.1 \times 10^{-7} \nu^2 + 3.0 \times 10^{-10} \nu^3
+\]
+At 145 GHz, we have $\alpha_e = .00836$ and $\alpha_0 = .02004$.
+Plugging these in gives a polarized emissivity of $\epsilon_\t{pol} = 1.503 \times 10^{-5}$.
+
+\section{Results}
+
+
+
+
+\printbibliography
+
+\end{document}
+

@@ -6,7 +6,6 @@ IRShader1	298.0  NA      NA      NA	 NA	   [0.001,0.001]	NA      NA          NA	
 IRShader2	293.0  NA      NA      NA	 NA	   [0.001,0.001]	NA      NA          NA	          0.000   NA	      NA	 
 IRShader3	290.0  NA      NA      NA	 NA	   [0.001,0.001]	NA      NA          NA	          0.000   NA	      NA	 
 IRShader4	276.0  NA      NA      NA	 NA	   [0.001,0.001]	NA      NA          NA	          0.000   NA	      NA	 
-AluminaF	82.00  2.00    3.10    0.5	 NA	   NA			NA      NA          NA	          0.020   NA	      NA
 IRShader1	76.00  NA      NA      NA	 NA	   [0.001,0.001]	NA      NA          NA	          0.000   NA	      NA
 IRShader2	70.00  NA      NA      NA	 NA	   [0.001,0.001]	NA      NA          NA	          0.000   NA	      NA	 
 IRShader3	65.00  NA      NA      NA	 NA	   [0.001,0.001]	NA      NA          NA	          0.000   NA	      NA	 

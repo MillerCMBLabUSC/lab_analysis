@@ -1,0 +1,212 @@
+\documentclass{article}
+\usepackage[margin=.9in]{geometry}              
+\geometry{letterpaper}
+\usepackage[parfill]{parskip}               
+\usepackage{amssymb,amsmath}
+\usepackage{amsthm}
+\usepackage{mathtools}
+\usepackage{enumerate}
+\usepackage{gensymb}
+\usepackage{tkz-graph}
+\usepackage{tikz}
+\usetikzlibrary{matrix}
+\usepackage{cancel}
+\usepackage[final]{pdfpages}
+\usepackage{tabularx}
+
+
+\usepackage[
+backend=bibtex,
+style=numeric,
+citestyle=numeric,
+maxbibnames=5,
+sorting=none]{biblatex}
+
+\bibliography{4f_pred} 
+
+\usepackage{hyperref}
+\hypersetup{
+	colorlinks=true,
+	linkcolor=blue,
+	filecolor=magenta,      
+	urlcolor=blue	,
+}
+
+\urlstyle{same}
+
+\makeatletter
+\def\blx@maxline{77}
+\makeatother
+
+
+\graphicspath{{images/}}
+
+\newenvironment{mycenter}[1][\topsep]
+  {\setlength{\topsep}{#1}\par\kern\topsep\centering}% \begin{mycenter}[<len>]
+  {\par\kern\topsep}% \end{mycenter}
+
+\newenvironment{problem}{\rightskip1in}{\begin{mycenter}[-2pt]\rule{1.0\textwidth}{.4pt}\end{mycenter}}
+ 
+\relpenalty=9999
+\binoppenalty=9999
+
+\theoremstyle{remark}
+\newtheorem*{claim}{\\Claim}
+\newtheorem*{lemma}{\\Lemma}
+\newcommand{\inv}{^{-1}}
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial#2}}
+\newcommand{\td}[2]{\frac{d#1}{d#2}}
+\newcommand{\tab}{\hspace*{2em}}
+\newcommand{\tn}[2]{\tensor{#1}{#2}}
+\newcommand{\bp}[1]{\left(#1\right)}
+\renewcommand{\t}[1]{\text{#1}}
+\newcommand{\mb}[1]{\mathbb{#1}}
+\newcommand{\mds}[1]{\mathds{#1}}
+\newcommand{\mc}[1]{\mathcal{#1}}
+\newcommand{\comp}[1]{\overline{#1}}
+\newcommand{\AI}{A^{(4)}_{0|<I_{\t{in}}>}}
+\newcommand{\A}[1]{A^{(#1)}}
+\newcommand{\lo}{\lambda_\t{opt}^{(4)}}
+\newcommand{\ip}{$I\rightarrow P$ }
+
+\newcolumntype{Y}{>{\centering\arraybackslash}X}
+
+\linespread{1.25}
+\renewcommand{\vec}[1]{\boldsymbol{#1}}
+\newcommand{\horrule}[1]{\rule{\linewidth}{#1}}
+\newcommand{\abs}[1]{\left|#1\right|}%
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+
+\title{HWPSS Runthrough}
+\author{Jack Lashner}
+\date{}
+
+
+
+
+\begin{document}
+\maketitle
+
+This document will detail all major steps in the HWPSS calculation for the small aperture telescope where the band center is at 145 GHz, and the FOV is 30$\degree$.
+
+\section{IP Calculation}
+The IP is dominated by three elements, the two aluminum filters on the sky side of the HWP, and the window.
+Transmission and Reflection coefficients for $s$ and $p$ polarization are calculated separately using the Transfer Matrix Method (using the python tmm package), and averaged across the bandwidth of the detector.
+The absorption coefficient is then determined by:
+\[1 = T_s + R_s + A_s.\]
+where all coefficients are between 0 and 1.
+
+The indices of refraction used were calculated using the dielectric coefficients and loss tangents given here: \url{http://www.eccosorb.com/Collateral/Documents/English-US/dielectric-chart.pdf}, and are $n = 1.5 + i .0001$ for glass and $n=3.1 +i .00008$ for the filter.
+
+Two layers of AR coating were used to optimize for both 95 GHz and 145 GHz. 
+The outer and inner layers had indices of refraction $n = n_0^{1/3}$ and $n_0^{2/3}$ respectively.
+
+
+
+The Instrumental Polarization of each element is the differential transmission:
+\[T_{s - p} = \frac{T_s - T_p}{2}\]
+The factor of two is necessary because both $T_s$ and $T_p$ vary between 0 and 1, 
+while we requre the incident power to be normalized to 1.
+
+Similarly, the polarized emissivity is calculated using the differential absorption:
+\[A_{s - p} = \frac{A_s - A_p}{2} .\]
+All coefficients for the window are given in Table \ref{tab:opt_coeffs}.
+
+
+\begin{table}
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+&\multicolumn{3}{|c|}{Window}\\
+\hline
+ & Trans (\%) & Refl (\%) & Abs (\%) \\
+ \hline
+S    & 99.06 &0.53 & 0.409\\
+P    & 99.15 & 0.43  & 0.409\\
+S-P & .049  & .049& $1.2\times 10^{-5}$\\
+ \hline
+\end{tabular}
+\begin{tabular}{|c|c|c|c|}
+	\hline
+	&\multicolumn{3}{|c|}{Aluminum Filter}\\
+	\hline
+	& Trans (\%) & Refl (\%) & Abs (\%) \\
+	\hline
+	S    & 96.199 & 3.630 & 0.169\\
+	P    & 96.685 & 3.144  & 0.169\\
+	S-P & 0.242  & 0.242 & $4.06\times 10^{-5}$\\
+	\hline
+\end{tabular}
+\caption{
+	Band-averaged transmission, reflection, and absorption coefficients for both S and P types of polarization for a window with an incident angle of $15 \degree$.
+	The S-P row is the differential coefficient, including the factor of 1/2.
+.}
+\label{tab:opt_coeffs}
+\end{table}
+
+
+\section{Propagation}
+To calculate the polarized power on the detector, we need to calculate both the differential transmission and the emitted polarized power.
+
+To calculate the instrumental polarization, we multiply the incident unpolarized power by the differential transmission $T_{s-p}$.
+To calculate the polarized emission, the blackbody spectrum at the temperature of the optical element with emissivity $A_{s-p}$ is integrated across the detector bandwidth.
+The total polarized power at the detector is the sum of these two
+multiplied by the polarized cumulative efficiency of everything on the detector side of the element.
+For each element, these values are given in Table \ref{tab:opt_power}.
+
+This gives a total polarized power at the detector of around 0.0386 pW.
+
+
+\begin{table}
+	\centering
+	\begin{tabular}{| c | c | c | c | c |}
+		\hline
+		                      			& Window (pW) & Filter 1 (pW) & Filter 2 (pW) & Total (pW)\\ \hline
+		UnPol Inc Power on Element          & 10.52 &    19.08      &   18.86       & \\
+		Pol Power from $T_{s-p}$ after Element  	 	&  0.00495 &   0.0454       &    0.0449      & \\
+		Emitted Pol power after Element    &  $-3.8\times10^{-5} $ &    $-3.5 \times 10^{-4} $  & $-1.7 \times 10^{-4}   $    & \\
+		Total Pol Power after Element  	     &  0.00495  &  0.0454   &  0.0449       & \\
+		Cum. Pol. Efficiency & 0.389 & 0.400 & 0.413 & \\
+		Pol Power at detector on Detector& 0.00192  &  0.01816   & 0.01854& 0.0386 \\
+		\hline
+	\end{tabular}
+\caption{Polarized power (pW) generated by each major optical element. }
+\label{tab:opt_power}
+\end{table}
+
+\section{Conversion to $K_\text{cmb}$}
+
+To calculate  the conversion factor to $K_\text{cmb}$ in the sky, we follow Charlie Hill's sensitivity code and use the unpolarized power from the CMB which reaches the detector.
+The detector bandwidth runs from $\nu_{\t{low}} =  125$ GHz to $\nu_{\t{high}}=165$ GHz, so we have
+
+\[P_\text{cmb} = 
+\frac{\eta_\t{tel}}{2} \int_{\nu_{\t{low}}}^{\nu_{\t{high}}} 
+\frac{2 h \nu}{e^{h \nu/k T_\t{cmb}} - 1} d \nu
+\]
+where $\eta_\t{tel} = 0.3638$ is the total efficiency of the telescope, and the 1/2 is included because only half of the unpolarized power couples to the detector.
+The conversion between pW is then 
+\[
+\td{P_\t{cmb}}{T_\t{cmb}} =
+\frac{\eta_\t{tel}}{2} \int_{\nu_{\t{low}}}^{\nu_{\t{high}}} 
+\frac{2 h^2 \nu^2}{ k T_\t{cmb}^2 } 
+\frac{e^{h \nu/k T_\t{cmb}}}{\left(e^{h \nu/k T_\t{cmb}} - 1 \right)^2} d \nu 
+= 0.1199 \frac{\t{pW}}{K_\t{cmb}}
+\]
+
+The total power in is then about 321 mK$_\t{cmb}$.
+
+To get the Rayleigh Jean's temperature we do use the same method but with the Rayleigh Jean's approximation. 
+\[P_\text{RJ} = 
+\frac{\eta_\t{tel}}{2} \int_{\nu_{\t{low}}}^{\nu_{\t{high}}} 
+2 k T_\t{cmb} d \nu = 
+\eta_\t{tel} k T_\t{RJ} (\nu_{\t{high}} - \nu_{\t{low}})
+\]
+The conversion is then 
+\[
+\td{P_\t{RJ}}{T_\t{RJ}} = \eta_\t{tel} k  (\nu_{\t{high}} - \nu_{\t{low}}) = 0.2008\; \frac{\t{pW}}{K_\t{RJ}}
+\]
+This gives us a total power of 192 mK$_\t{RJ}$ .
+
+\end{document}
+

@@ -67,11 +67,13 @@ class OpticalElement:
         self.ipVal = None
         self.polAbs = None
         
-    def loadHWP(self, hwpFile, det, temp):
+    def loadHWP(self, hwpFile, det, temp, thickness = 3.0):
         self.name = "HWP"
         self.temp = temp
         self.polAbs = None
         self.fs, self.T, self.rho, self.c, self.s = np.loadtxt(hwpFile, dtype=np.float, unpack=True)
+        self.thick= thickness # mm 
+        
         
 
     #Loads an optical element from 
@@ -155,6 +157,22 @@ class OpticalElement:
 
 
     def pEmis(self, freq):
+        if self.name == "Mirror":
+            return - self.Ip(freq)
+        
+        if self.name == "HWP":
+            ao = 8.7*10**(-5) * (freq/ GHz) + 3.1*10**(-7)*(freq/GHz)**2 + (3.0)*10**(-10) * (freq/GHz)**3 #1/cm
+            ae = 1.47*10**(-7) * (freq/GHz)**(2.2) #1/cm
+            Eotrans =  np.exp(self.thick/10.0 * ao * self.temp/300) 
+            Eetrans =  np.exp(self.thick/10.0 * ae * self.temp/300)
+            
+            pemis = (abs(Eotrans)**2 - abs(Eetrans)**2) / 2            
+            
+#            pxo = 1 - np.exp(self.thick/10.0 * ao * self.temp/300)
+#            pxe = 1 - np.exp(self.thick/10.0 * ae * self.temp/300)
+
+            return pemis
+        
         if self.polAbs == None:
             return 0
         return -abs(self.polAbs)
@@ -190,6 +208,7 @@ def loadOpticalChain(opticsFile,det, lensIP = .0004, theta = np.deg2rad(15./2)):
         Incident angle for Small Aperture
     
     """
+    
     data = np.loadtxt(opticsFile, dtype=np.str)
     keys = data[0]
         

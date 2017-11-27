@@ -17,7 +17,7 @@ GHz = 1.e9 # GHz -> Hz
 pW = 1.e12 # W -> pW
 
 class Telescope:
-    def __init__(self, expDir, atmFile,  bandID,  \
+    def __init__(self, expDir, atmFile,hwpFile, bandID, \
                  hwpi = None, lensIP = None, theta = None, writeFile = False,     \
                         printChain = False \
                 ):
@@ -25,9 +25,11 @@ class Telescope:
         channelFile = expDir + "channels.txt"
         cameraFile = expDir + "camera.txt"
         opticsFile = expDir + "opticalChain.txt"
-        atmFile = "Atacama_1000um_60deg.txt"
         
-            
+        
+        
+        baseDir = "/Users/jacoblashner/so/lab_analysis/apps/4f_model/"
+        
         #Imports detector data 
         self.det = dt.Detector(channelFile, cameraFile, bandID)
     
@@ -56,7 +58,6 @@ class Telescope:
 
     
         #Gets HWP index
-
         try:
             self.hwpIndex = [e.name for e in self.elements].index("HWP")
         except:
@@ -64,26 +65,24 @@ class Telescope:
                 self.hwpIndex = hwpi
                 e = opt.OpticalElement()
                 e.load("HWP", self.elements[hwpi - 1].temp, 0)
+#                e.load("HWP", self.elements[hwpi - 1].temp, 0)
                 self.elements.insert(hwpi, e)
             else:
                 print "ERROR: No HWP specified"
         
-        hwpFile = "../HWP_Mueller/Mueller_AR/Mueller_V2_nu150.0_no3p068_ne3p402_ARcoat_thetain0.0.txt"
+
         e = opt.OpticalElement()
         e.loadHWP(hwpFile, self.det, self.elements[self.hwpIndex].temp)
         self.elements[self.hwpIndex] = e
-        
+        self.dPdT = th.dPdT(self.elements, self.det)
         
         self.propSpectrum()
         self.geta2()
         self.getA2()
         self.geta4()
         self.getA4()
-        
-        self.dPdT = th.dPdT(self.elements, self.det)
+         
 
-        print self.A4 * pW
-        
         
     def cumEff(self, index, freq):
         cumEff = 1.
@@ -111,9 +110,14 @@ class Telescope:
         
     def getA2(self):
         hwp = self.elements[self.hwpIndex]
+#        ppEmitted = np.array([0 for _ in self.freqs])
         ppEmitted = th.weightedSpec(self.freqs, hwp.temp, hwp.pEmis)
         ppTransmitted = map(hwp.Ip, self.freqs)*self.UPspecs[self.hwpIndex]
-        self.A2 = th.powFromSpec(self.freqs, (ppEmitted + ppTransmitted)* map(lambda x : self.cumEff(self.hwpIndex, x), self.freqs)) 
+        
+        print "emitted: ", th.powFromSpec(self.freqs, ppEmitted*map(lambda x : self.cumEff(self.hwpIndex, x), self.freqs))/self.dPdT
+        print "transmitted: ", th.powFromSpec(self.freqs, ppTransmitted*map(lambda x : self.cumEff(self.hwpIndex, x), self.freqs))/self.dPdT
+        
+        self.A2 = abs(th.powFromSpec(self.freqs, (ppEmitted + ppTransmitted)* map(lambda x : self.cumEff(self.hwpIndex, x), self.freqs)) )
         
     def geta4(self):
         self.a4 = 0
@@ -130,9 +134,9 @@ class Telescope:
             
             ppEmitted = th.weightedSpec(self.freqs, e.temp, e.pEmis)
             ppTransmitted = map(e.Ip, self.freqs)*self.UPspecs[i]
-            ppTotal = th.powFromSpec(self.freqs, (ppEmitted + ppTransmitted)* map(lambda x : self.cumEff(i, x), self.freqs))
-            if ppTotal!=0:
-                print e.name, ppTotal*pW
+            ppTotal = abs(th.powFromSpec(self.freqs, (ppEmitted + ppTransmitted)* map(lambda x : self.cumEff(i, x), self.freqs)))
+#            if ppTotal!=0:
+#                print e.name, ppTotal*pW
             self.A4 += ppTotal
             
     
@@ -141,80 +145,18 @@ class Telescope:
 
 
 if __name__=="__main__":
-#     runModel("Experiments/Comparisons/ebex/LargeTelescope/", 1, False) #---    Run Ebex Comparison
-    #runModel("Experiments/Comparisons/pb", 1, False) #---    Run PB Comparison
-
-#    det,elements,_,_ = runModel("Experiments/small_aperture/LargeTelescope/", 2, writeFile = False, theta = np.deg2rad(30./2), printChain = True)
+#    expDir = "../Experiments/small_aperture/LargeTelescope/"
+#    atmFile= "Atacama_1000um_60deg.txt"
+#    bid = 2
+#    opts = {'theta': np.deg2rad(15.0)}
+#    tel = Telescope(expDir, atmFile, bid, **opts)
     
-    expDir = "../Experiments/small_aperture/LargeTelescope/"
+    freqRanges = ["LF","MF","HF"]
+    
+    expDir = "../Experiments/V2_dichroic/45cm/%s_45cm_3waf_silicon/LargeTelescope/"%freqRanges[0]
     atmFile = "Atacama_1000um_60deg.txt"
-    bid = 2
-    opts = {'theta': np.deg2rad(15.0)}
+    bid = 1
+    opts = {"hwpi": 10, "lensIP": .0004}
     tel = Telescope(expDir, atmFile, bid, **opts)
     
-#    runModel("Experiments/V2_dichroic/45cm/HF_45cm_3waf_silicon/LargeTelescope/", 1, writeFile = False,  hwpIndex=9 )
-#    
-#    
-#    
-#    
-#    powEntrance = [[],[]]
-#    powerCMB = [[],[]]
-#    thetas = [7.5, 10., 12.5, 15.]
-#    for theta in map(np.deg2rad, thetas):
-#         for i in [1,2]:
-#             expDir = "Experiments/small_aperture/LargeTelescope/"
-#             
-#             det, elements, powAtDetector, powCMB = runModel(expDir, i, writeFile = False, theta = theta, hwpIndex = 9, printChain = False)             
-#             
-#             telEff =  reduce((lambda x, y : x * y), [e.Eff(det.band_center) for e in elements[2:]])
-#             
-#             powEntrance[i-1] += [powAtDetector / telEff]
-#             powerCMB[i-1] += [powCMB]
-#     
-#    l = [thetas, powEntrance[0], powEntrance[1], powerCMB[0], powerCMB[1]]
-#    print  toTeXTable(np.asarray(l).T)
-#    
-#    
-#     
-#        
-     
-##    
-#     powerEntrance = [[],[]]
-#     powerCMB = [[],[]]
-#     for hwpi in [8, 9]:
-#         for i in [1,2]:
-#            
-#             expDir = "Experiments/small_aperture/LargeTelescope/"
-#             expDir = "Experiments/V2_dichroic/45cm/MF_45cm_3waf_silicon/LargeTelescope/"
-#            
-#             det, elements, powAtDetector, powCMB = runModel(expDir, i, writeFile = False, hwpIndex = hwpi)
-##             geta2(elements, det)
-#             print det.band_center
-#             
-#             telEff =  reduce((lambda x, y : x * y), [e.Eff(det.band_center) for e in elements[2:]])
-#
-#             
-#             powerEntrance[hwpi - 8] += [powAtDetector / telEff]
-#             powerCMB[hwpi - 8] += [powCMB]
-#
-#            
-            
-
- #            
- #            print "band_center: %d:"%(band_center)
- #            print "Power at Det: \t %e pW"%(powAtDetector)
- #            print "Power (pW):\t%e pW" % (powAtDetector/ telEff)
- #            print "Power (Kcmb):\t%e"%powCMB
- #            print ""
-            
-        
-
-
-
-    # runAll("Experiments/V2_dichroic/45cm")
-
-
-
-
-
-    
+    print tel.A4 / tel.dPdT
