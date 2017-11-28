@@ -82,7 +82,7 @@ class Telescope:
         self.geta4()
         self.getA4()
          
-
+        print "HWP Inc", th.powFromSpec(self.freqs, self.UPspecs[self.hwpIndex])
         
     def cumEff(self, index, freq):
         cumEff = 1.
@@ -117,7 +117,7 @@ class Telescope:
         print "emitted: ", th.powFromSpec(self.freqs, ppEmitted*map(lambda x : self.cumEff(self.hwpIndex, x), self.freqs))/self.dPdT
         print "transmitted: ", th.powFromSpec(self.freqs, ppTransmitted*map(lambda x : self.cumEff(self.hwpIndex, x), self.freqs))/self.dPdT
         
-        self.A2 = abs(th.powFromSpec(self.freqs, (ppEmitted + ppTransmitted)* map(lambda x : self.cumEff(self.hwpIndex, x), self.freqs)) )
+        self.A2 = .5 * abs(th.powFromSpec(self.freqs, (ppEmitted + ppTransmitted)* map(lambda x : self.cumEff(self.hwpIndex, x), self.freqs)) )
         
     def geta4(self):
         self.a4 = 0
@@ -134,7 +134,7 @@ class Telescope:
             
             ppEmitted = th.weightedSpec(self.freqs, e.temp, e.pEmis)
             ppTransmitted = map(e.Ip, self.freqs)*self.UPspecs[i]
-            ppTotal = abs(th.powFromSpec(self.freqs, (ppEmitted + ppTransmitted)* map(lambda x : self.cumEff(i, x), self.freqs)))
+            ppTotal = .5 * abs(th.powFromSpec(self.freqs, (ppEmitted + ppTransmitted)* map(lambda x : self.cumEff(i, x), self.freqs)))
 #            if ppTotal!=0:
 #                print e.name, ppTotal*pW
             self.A4 += ppTotal

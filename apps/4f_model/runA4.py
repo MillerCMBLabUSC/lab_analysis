@@ -14,8 +14,8 @@ import matplotlib.pyplot as plt
 pW = 10 ** 12
 GHz = 10**9
 
-#expDir = "Experiments/small_aperture/LargeTelescope/"    
-expDir = "Experiments/small_aperture/WarmHWP/"
+expDir = "Experiments/small_aperture/LargeTelescope/"    
+#expDir = "Experiments/small_aperture/WarmHWP/"
 atmFile = "src/Atacama_1000um_60deg.txt"
 
 theta = 20
@@ -28,11 +28,17 @@ tel = tp.Telescope(expDir, atmFile, hwpFile, bid, **opts)
 
 hwp = tel.elements[tel.hwpIndex]
 
-print "Emissivity: ", hwp.pEmis(tel.det.band_center)
-#print  hwp.pEmis(tel.det.band_center) * hwp.temp  
+print "pEmis", hwp.pEmis(tel.det.band_center)
 
 print "A2 (pW)", tel.A2 /tel.cumEff(0, tel.det.band_center) * pW
+print "A2 (KRJ)", tel.A2 /tel.cumEff(0, tel.det.band_center)  /th.kB / (tel.det.band_center * tel.det.fbw)
 print "A2 (K)", tel.A2 / tel.dPdT
+print "A4", tel.A4
+print "A4 (pW)", tel.A4 / tel.cumEff(0, tel.det.band_center) * pW
+print "A4 (KRJ)", tel.A4 /tel.cumEff(0, tel.det.band_center)  /th.kB / (tel.det.band_center * tel.det.fbw)
+print "A4 (K)", tel.A4 / tel.dPdT
+
+
 
 #print tel.A4 / tel.cumEff(0, tel.det.band_center) * pW
 #print tel.A4 / tel.dPdT

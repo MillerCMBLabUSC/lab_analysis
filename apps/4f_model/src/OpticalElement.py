@@ -166,7 +166,7 @@ class OpticalElement:
             Eotrans =  np.exp(self.thick/10.0 * ao * self.temp/300) 
             Eetrans =  np.exp(self.thick/10.0 * ae * self.temp/300)
             
-            pemis = (abs(Eotrans)**2 - abs(Eetrans)**2) / 2            
+            pemis = (abs(Eetrans)**2 - abs(Eotrans)**2) / 2            
             
 #            pxo = 1 - np.exp(self.thick/10.0 * ao * self.temp/300)
 #            pxe = 1 - np.exp(self.thick/10.0 * ae * self.temp/300)
