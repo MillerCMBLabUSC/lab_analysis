@@ -38,11 +38,12 @@ class Simulator(object):
 		hwp_angle = np.sin(2*pl.pi * self.settings.f_hwp * times)
 		data = 1/2.* (bolo_i + bolo_p * pl.cos(4*hwp_angle - 2*bolo_alpha))
 		data = self.add_hwpss(times, data, hwp_angle)
-		data = self.add_nonlinearity(data)
-		data = self.add_noise(data)
+		#data = self.add_nonlinearity(data)
+		#data = self.add_noise(data)
 		self.plot_data(times, data)
-
-		
+		#self.make_map(data, detector_pointing, lat, lon)
+	
+	
 	def rotate_boresight_pointing(self, boresight_pointing, bolo_number):
 		#this is a basic rotation function. the three bolos are arranged in a triangle with base 0.005 (~50m) and height 0.005 (~50m)
 		#if a fourth bolo is added, it will be at the center of the triangle (the boresight pointing)
@@ -89,8 +90,15 @@ class Simulator(object):
 		plt.plot(times, data_to_plot,'.', markersize = 1.5)
 		plt.xlabel('Time (s)')
 		plt.ylabel('K_cmb')
-	#def make_map(self, data, detector_pointing):
-
+	
+	def make_map(self, data, detector_pointing, lat, lon):
+		detector_pointing = list(detector_pointing)
+		nside = 1024
+		npix = healpy.nside2npix(nside)
+		indices = healpy.ang2pix(nside, lon, lat, lonlat = True)
+		hpmap = np.zeros(npix, dtype = np.float)
+		hpmap[indices] += data[indices]
+		healpy.mollview(hpmap)
 
 
 if __name__ == "__main__":
