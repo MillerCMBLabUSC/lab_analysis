@@ -59,9 +59,10 @@ def splineEMD(x,resolution,inputResidual,step):
             topenv = CubicSpline(parabolicMax[:,0],parabolicMax[:,1])
             botenv = CubicSpline(parabolicMin[:,0],parabolicMin[:,1])
             mean = (topenv(t) + botenv(t))/2
-
+        print(len(parabolicMax))
         plt.figure()
-        plt.plot(t,botenv,t,-botenv,t,iImf)
+        plt.plot(t,botenv(t),t,-botenv(t)+mean,t,iImf)
+        plt.show()
         iImf = np.array(iImf)
         imfs = np.append(imfs,iImf,axis=0)
         count = count + 1
@@ -81,14 +82,14 @@ def splineEMD(x,resolution,inputResidual,step):
     imfs = np.array(imfs) #array with imfs and residual in last row
     imfs = imfs.reshape(count,int(len(x)))
     
-    recon = np.zeros((100,))            #create empty reconstructed matrix
+    recon = np.zeros((siglen,))            #create empty reconstructed matrix
     for i in range(len(imfs)):
         recon = recon + imfs[i]         #add the Imfs and residual together
         #plt.plot(t,imfs[i])
         
-    #plt.figure()
-    #plt.plot(t,recon-x)                 #plot the difference between the reconstructed signal minus the input signal
-    #plt.show()
+    plt.figure()
+    plt.plot(t,recon-x)                 #plot the difference between the reconstructed signal minus the input signal
+    plt.show()
 
     return imfs
    
@@ -253,7 +254,7 @@ if __name__ == "__main__":
     f_knee = 2.0
     sample_rate = 100.0
     noise = simulate.simulate_noise(alpha, white_noise_sigma,length_ts, f_knee, sample_rate)
-    vec = splineEMD(noise,50,40,1)
+    vec = splineEMD(noise,10,5,.6)
     
 
 
