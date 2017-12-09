@@ -19,7 +19,7 @@ class Simulator(object):
 	def run(self):
 		self.settings = default_settings.SimulatorSettings()
 		times = np.linspace(0, self.settings.t_end, self.settings.t_end/self.settings.dt)
-		maps = healpy.read_map(self.load_map('nilc_1024_full'), field = (0, 1, 2))
+		maps = healpy.read_map(self.load_map('sevem_1024_full'), field = (0, 1, 2))
 		create_pointing = pointing.CreatePointing()
 		boresight_pointing = create_pointing.make_boresight_pointing()
 		for bolo in range(0, self.settings.num_bolos):
@@ -38,8 +38,8 @@ class Simulator(object):
 		hwp_angle = np.sin(2*pl.pi * self.settings.f_hwp * times)
 		data = 1/2.* (bolo_i + bolo_p * pl.cos(4*hwp_angle - 2*bolo_alpha))
 		data = self.add_hwpss(times, data, hwp_angle)
-		#data = self.add_nonlinearity(data)
-		#data = self.add_noise(data)
+		data = self.add_nonlinearity(data)
+		data = self.add_noise(data)
 		self.plot_data(times, data)
 		#self.make_map(data, detector_pointing, lat, lon)
 	
@@ -82,7 +82,6 @@ class Simulator(object):
 		#approximation we are using for now: A1 = 50mK, A2 = 100, A4 = 200. All other coeffs = 0.
 		hwpss = 0.05*pl.cos(hwp_angle) + 0.1*pl.cos(2*hwp_angle) + 0.2*pl.cos(4*hwp_angle)
 		return signal + hwpss
-	
 	
 	def plot_data(self, times, data_to_plot):
 		plt.axhline(linewidth = 0.5, color = 'k')

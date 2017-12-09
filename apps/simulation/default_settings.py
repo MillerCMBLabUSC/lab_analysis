@@ -9,7 +9,7 @@ class SimulatorSettings:
 		self.ra_rng = 5 
 		self.dec_rng = 5 
 		self.dec_stp = 0.1 
-		self.dt = 0.2 #data time interval 
+		self.dt = 0.1 #data time interval 
 		self.t_end = 3600.0 #seconds
 		
 		#NET and noise settings
@@ -21,6 +21,7 @@ class SimulatorSettings:
 				'ACT': self.NET_from_ACT}  #can add more NET values to dict
 		
 		self.NET_from = 'POLARBEAR1' #can change to 'POLARBEAR' 'ACT' etc.
+		#only using POLARBEAR1 value for now; the other two are for entire array. NET per detector needed.
 		self.NET = self.NET_dict.get(self.NET_from)
 		
 		#HWP and HWPSS settings
