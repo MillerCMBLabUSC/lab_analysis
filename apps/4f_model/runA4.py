@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+5#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
 Created on Fri Nov 17 20:02:32 2017
@@ -18,7 +18,7 @@ expDir = "Experiments/small_aperture/LargeTelescope/"
 #expDir = "Experiments/small_aperture/WarmHWP/"
 atmFile = "src/Atacama_1000um_60deg.txt"
 
-theta = 20
+theta = 0
 hwpFile = "HWP_Mueller/Mueller_AR/Mueller_V2_nu150.0_no3p068_ne3p402_ARcoat_thetain%d.0.txt"%theta
 bid = 2
 
@@ -33,6 +33,8 @@ print "pEmis", hwp.pEmis(tel.det.band_center)
 print "A2 (pW)", tel.A2 /tel.cumEff(0, tel.det.band_center) * pW
 print "A2 (KRJ)", tel.A2 /tel.cumEff(0, tel.det.band_center)  /th.kB / (tel.det.band_center * tel.det.fbw)
 print "A2 (K)", tel.A2 / tel.dPdT
+
+
 print "A4", tel.A4
 print "A4 (pW)", tel.A4 / tel.cumEff(0, tel.det.band_center) * pW
 print "A4 (KRJ)", tel.A4 /tel.cumEff(0, tel.det.band_center)  /th.kB / (tel.det.band_center * tel.det.fbw)

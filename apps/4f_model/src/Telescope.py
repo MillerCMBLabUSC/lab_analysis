@@ -17,73 +17,78 @@ GHz = 1.e9 # GHz -> Hz
 pW = 1.e12 # W -> pW
 
 class Telescope:
-    def __init__(self, expDir, atmFile,hwpFile, bandID, \
-                 hwpi = None, lensIP = None, theta = None, writeFile = False,     \
-                        printChain = False \
-                ):
+    def __init__(self, expDir, atmFile, hwpFile, bandID, theta = None, writeFile = False):
         
         channelFile = expDir + "channels.txt"
         cameraFile = expDir + "camera.txt"
         opticsFile = expDir + "opticalChain.txt"
         
         
-        
-        baseDir = "/Users/jacoblashner/so/lab_analysis/apps/4f_model/"
-        
         #Imports detector data 
         self.det = dt.Detector(channelFile, cameraFile, bandID)
-    
+        self.freqs = np.linspace(self.det.flo, self.det.fhi, 400) #Frequency array of the detector
+        
         """
-            CREATES OPTICAL CHAIN
+            Creating the Optical Chain
         """
         self.elements = [] #List of optical elements
     
         #CMB Element
-        e = opt.OpticalElement()
-        e.load("CMB", 2.725, 1)
-        self.elements.append(e)
+        self.elements.append(opt.OpticalElement("CMB", self.det, 2.725, {"Absorb": 1}))
         
-        #Atmosphere Element
-        e = opt.OpticalElement()
-        e.loadAtm(atmFile,self.det)
-        self.elements.append(e)
-    
+        #Atm Element
+        self.elements.append( opt.loadAtm(atmFile, self.det))
+        
         #Telescope elements
-        self.elements += opt.loadOpticalChain(opticsFile, self.det, lensIP = lensIP, theta=theta)
-    
-        #Detector Element
-        e = opt.OpticalElement()
-        e.load("Detector", self.det.bath_temp, 1 - self.det.det_eff)
-        self.elements.append(e) 
+        self.elements += opt.loadOpticalChain(opticsFile, self.det, theta=theta)
+        
+        self.elements.append(opt.OpticalElement("Detector", self.det, self.det.bath_temp, {"Absorb": 1 - self.det.det_eff}))
+        
 
-    
-        #Gets HWP index
         try:
             self.hwpIndex = [e.name for e in self.elements].index("HWP")
         except:
-            if hwpi:
-                self.hwpIndex = hwpi
-                e = opt.OpticalElement()
-                e.load("HWP", self.elements[hwpi - 1].temp, 0)
-#                e.load("HWP", self.elements[hwpi - 1].temp, 0)
-                self.elements.insert(hwpi, e)
-            else:
-                print "ERROR: No HWP specified"
+            print "No HWP in Optical Chain"
+        
+        
+        fs, T, rho, _, _ = np.loadtxt(hwpFile, dtype=np.float, unpack=True)
+        self.elements[self.hwpIndex].updateParams({"Freqs": fs, "EffCurve": T, "IPCurve": rho})
+        
+        
+        
+        self.dPdT = th.dPdT(self.elements, self.det)
+        
+        
+##        e = opt.OpticalElement()
+##        e.load("CMB", 2.725, 1)
+##        self.elements.append(e)
+#        
+#        #Atmosphere Element
+#        e = opt.OpticalElement()
+#        e.loadAtm(atmFile,self.det)
+#        self.elements.append(e)
+#    
+#        #Telescope elements
+#        self.elements += opt.loadOpticalChain(opticsFile, self.det, theta=theta)
+#    
+#        #Detector Element
+#        e = opt.OpticalElement()
+#        e.load("Detector", self.det.bath_temp, 1 - self.det.det_eff)
+#        self.elements.append(e) 
+
+    
+        #Gets HWP index
+
         
 
-        e = opt.OpticalElement()
-        e.loadHWP(hwpFile, self.det, self.elements[self.hwpIndex].temp)
-        self.elements[self.hwpIndex] = e
-        self.dPdT = th.dPdT(self.elements, self.det)
+
         
         self.propSpectrum()
         self.geta2()
         self.getA2()
         self.geta4()
         self.getA4()
-         
-        print "HWP Inc", th.powFromSpec(self.freqs, self.UPspecs[self.hwpIndex])
-        
+                 
     def cumEff(self, index, freq):
         cumEff = 1.
         for i in range(index + 1, len(self.elements)):
@@ -93,9 +98,7 @@ class Telescope:
         
         
     def propSpectrum(self):
-        N = 400 #subdivision of frequency range
-        self.freqs = np.linspace(self.det.flo, self.det.fhi, N) #Frequency array
-        self.UPspecs = [np.zeros(N)]  #Unpolarized spectrum before each element
+        self.UPspecs = [np.zeros(len(self.freqs))]  #Unpolarized spectrum before each element
         
         for (i, el) in enumerate(self.elements):
             
@@ -145,18 +148,12 @@ class Telescope:
 
 
 if __name__=="__main__":
-#    expDir = "../Experiments/small_aperture/LargeTelescope/"
-#    atmFile= "Atacama_1000um_60deg.txt"
-#    bid = 2
-#    opts = {'theta': np.deg2rad(15.0)}
-#    tel = Telescope(expDir, atmFile, bid, **opts)
+    expDir = "../Experiments/small_aperture/LargeTelescope/"    
+    atmFile = "Atacama_1000um_60deg.txt"    
+    theta = 20
+    hwpFile = "../HWP_Mueller/Mueller_AR/Mueller_V2_nu150.0_no3p068_ne3p402_ARcoat_thetain%d.0.txt"%theta
+    bid = 2
     
-    freqRanges = ["LF","MF","HF"]
+    opts = {'theta': np.deg2rad(theta)}
     
-    expDir = "../Experiments/V2_dichroic/45cm/%s_45cm_3waf_silicon/LargeTelescope/"%freqRanges[0]
-    atmFile = "Atacama_1000um_60deg.txt"
-    bid = 1
-    opts = {"hwpi": 10, "lensIP": .0004}
-    tel = Telescope(expDir, atmFile, bid, **opts)
-    
-    print tel.A4 / tel.dPdT
+    tel = Telescope(expDir, atmFile, hwpFile, bid, **opts)
