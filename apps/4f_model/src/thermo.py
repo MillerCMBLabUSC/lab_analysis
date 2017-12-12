@@ -46,8 +46,13 @@ def bbPower(temp, emis, f1,f2):
 def powFromSpec(freqs, spec):
     return np.trapz(spec, freqs)
 
-#Spillover efficiency
-def spillEff(D, F, waistFact, freq): 
+
+def spillEff(det):
+    """" Calculates Spillover Efficiency of detector"""
+    D = det.pixSize
+    F = det.f_num
+    waistFact = det.waistFact
+    freq = det.band_center
     return 1. - np.exp((-np.power(np.pi,2)/2.)*np.power((D/(waistFact*F*(c/freq))),2))
 
 

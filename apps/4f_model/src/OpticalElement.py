@@ -13,10 +13,8 @@ GHz = 1.e9 # GHz -> Hz
 pW = 1.e12 # W -> pW
 
 
-#Vacuum Permitivity
-eps0 = 8.85e-12
-#Resistivity of the mirror
-rho=2.417e-8
+eps0 = 8.85e-12 #Vacuum Permitivity
+rho=2.417e-8 #Resistivity of the mirror
 
 
 class OpticalElement:
@@ -49,146 +47,59 @@ class OpticalElement:
         self.params = {"Thick": 0,      "Index": 0, "LossTan": 0, "Absorb": 0, \
                        "Absorb": 0,     "Spill": 0, "SpillTemp": 0, "Refl": 0, "ScattFrac": 0, \
                        "ScattTemp": 0,  "IP": 0, "PolAbs": 0,  "Chi": 0, \
-                       "Freqs": None, "EffCurve": None, "IPCurve": None, "EmisCurve": None};
+                       "Freqs": None,   "EffCurve": None, "IPCurve": None, "EmisCurve": None, "PolEmisCurve": None};
         
         #Sets input parameters                       
         for k in params.keys():
-            try:
-                #Converts to float if input is a string
-                v = eval(params[k])
-                if type(v) == list:
-                    self.params[k] = v[self.det.bid - 1]
-                else:
-                    self.params[k] = v
-            except:
-                if params[k] == "NA":
-                    self.params[k] = 0
-                else:
-                    self.params[k] = params[k]
-                
-            
+            p = params[k]
+            if type(p) !=  np.string_:
+                self.params[k]= p
+            else:
+
+                try:
+                    #Converts to float if input is a string
+                    v = eval(params[k])
+                    if type(v) == list:
+                        self.params[k] = v[self.det.bid - 1]
+                    else:
+                        self.params[k] = v
+                except:
+                    if params[k] == "NA":
+                        self.params[k] = 0
+
     def updateParams(self, modifiedParams):
         self.params.update(modifiedParams)
-                       
-#    def __init__(self, name, det, temp, params):
-#
-#        #Detector Parameters
-#        self.det = None
-#        self.name = ""
-#        self.thick = 0
-#        self.index = 0
-#        self.lossTan = 0
-#        self.temp = 0
-#        self.absorb = 0
-#        self.spill = 0
-#        self.spillTemp = 0
-#        self.refl = 0
-#        self.scattFrac = 0
-#        self.scattTemp = 0
-#        # Parameters not included in opticalChain file
-#        self.ipVal = 0
-#        self.chi = 0
-        
-       
-
-    # Loads an optical element from name, temp, and absorption
-    def load(self, name, temp, absorb):
-        self.name = name
-        self.temp = temp
-        self.absorb = absorb
-        self.spill = 0
-        self.refl = 0
-        self.ipVal = None
-        self.polAbs = None
-        
-
-        
-
-        
-        
-
-    #Loads an optical element from 
-    def loadParams(self, params, det, chi = None, ipVal = None, polAbs = None):
-        #Detector Parameters
-        self.det = det
-
-        #Gets params from dictionary
-        self.name = params["Element"]
-        self.thick = self._toFloat(params["Thick"])
-        self.index = self._toFloat(params["Index"])
-        self.lossTan = self._toFloat(params["LossTan"])
-        self.temp = self._toFloat(params["Temp"])
-        self.absorb = self._toFloat(params["Absorb"], self.det.bid)
-        self.spill = self._toFloat(params["Spill"])
-        self.spillTemp = self._toFloat(params["SpillTemp"])
-        self.refl = self._toFloat(params["Refl"])
-        self.scattFrac = self._toFloat(params["ScattFrac"])
-        self.scattTemp = self._toFloat(params["ScattTemp"])
-
-        # Parameters not included in opticalChain file
-        self.ipVal = ipVal
-        self.polAbs = polAbs
-        self.chi = chi
-
-    #Get element Ip 
+    
+    
+    #IP Coefficient 
     def Ip(self, freq):
         if self.params["IPCurve"] is not None:
             return np.interp(freq, self.params["Freqs"], self.params["IPCurve"])
         return self.params["IP"]
-        
-#    def Ip(self, freq):
-#        if self.name == "Mirror":
-#            if self.chi == None:
-#                print "Incidence angle Chi must be defined for mirrors"
-#                return 
-#
-#            geom = (1 / np.cos(self.chi) - np.cos(self.chi))
-#            return 2 * geom * np.sqrt(4 * np.pi * eps0 * rho * freq)
-#
-#        elif self.name == "Lens":
-#            if self.ipVal == None:
-#                print "IP values must be defined for lenses"
-#                return
-#
-#            return abs(self.ipVal)
-#        elif self.name == "HWP":
-#            return np.interp(freq, self.fs, self.rho)
-#        if self.ipVal:
-#            return self.ipVal
-#        return 0
-
+    
+    #Absorption coefficient
+    def Absorb(self, freq):
+        if self.params["LossTan"] != 0:
+            return th.dielectricLoss(self.params["LossTan"], self.params["Thick"], self.params["Index"], freq)
+        else:
+            return self.params["Absorb"]
+    
+    #Transmission Coefficient
     def Eff(self, freq):
         if self.params["EffCurve"] is not None:
             return np.interp(freq, self.params["Freqs"], self.params["EffCurve"])
         elif self.name == "Aperture":
-            return th.spillEff(self.det.pixSize, self.det.f_num, self.det.waistFact, self.det.band_center)
+            return th.spillEff(self.det)
         else:
-            if self.params["Absorb"] == 0 and self.params["LossTan"] != 0:
-                ab = self.Emis( freq)
-            else:
-                ab = self.params["Absorb"]
-            return  1 - ab - self.params["Spill"]- self.params["Refl"]
+            return  1 - self.Absorb(freq) - self.params["Spill"]- self.params["Refl"]
             
-        
-        
-#        if self.name == "Atm":
-#            return np.interp(freq,self.fs,self.ts) 
-#        elif self.name == "Aperture":
-#            return th.spillEff(self.det.pixSize, self.det.f_num, self.det.waistFact, self.det.band_center)
-#        elif self.name == "HWP":
-#            return np.interp(freq, self.fs, self.T)
-#        else:
-#            if self.absorb == 0 and self.lossTan != 0:
-#                ab = self.Emis( freq)
-#            else:
-#                ab = self.absorb
-#            return  1 - ab - self.spill- self.refl
-
+    #Polarized Efficiency
     def pEff(self, freq):
         return self.Eff(freq)
 
-
     def Emis(self, freq):
+        if self.params["EmisCurve"] is not None:
+            return np.interp(freq, self.params["Freqs"], self.params["EmisCurve"])
         if self.name == "Atm":
             # Returns 1 because we are using Rayleigh Jeans temperature
             return 1
@@ -197,16 +108,17 @@ class OpticalElement:
             spillEmis = self.params["Spill"] * th.powFrac(self.params["SpillTemp"], self.temp, self.det.flo, self.det.fhi)
         else:
             spillEmis = 0
+            
         if self.name == "Aperture":
             return (1 - self.Eff(freq) + spillEmis)
         else:
-            if self.params["Absorb"] == 0 and self.params["LossTan"] != 0:
-                return th.dielectricLoss(self.params["LossTan"], self.params["Thick"], self.params["Index"], freq)
-            return self.params["Absorb"] + spillEmis
+            return self.Absorb(freq) + spillEmis
 
-
-
+    #Polarized Emissivity
     def pEmis(self, freq):
+        if self.params["PolEmisCurve"] is not None:
+            return np.interp(freq, self.params["Freqs"], self.params["PolEmisCurve"])        
+        
         if self.name == "Mirror":
             return - self.Ip(freq)
         
@@ -219,59 +131,32 @@ class OpticalElement:
             pemis = (abs(Eetrans)**2 - abs(Eotrans)**2) / 2            
             return pemis
         
-        if self.params["PolAbs"] == None:
-            return 0
-        return -abs(self.params["PolAbs"])
+        return self.params["PolAbs"]
 
 
-    def _toFloat(self, val, unit=1.0):
-        print val
-        if val == "NA":
-            return 0
-        else:
-            v = eval(val)
-            if type(v) == float or type(v) == int:
-                return v * unit
-            if type(v) == list:
-                return v[self.det.bid-1] * unit
 
-
-def loadHWP(self, hwpFile, det, temp, thickness = 3.0):
-        self.name = "HWP"
-        self.temp = temp
-        self.polAbs = None
-        self.fs, self.T, self.rho, self.c, self.s = np.loadtxt(hwpFile, dtype=np.float, unpack=True)
-        self.thick= thickness # mm     
-
-# Loads an optical element from an atmosphere file
 def loadAtm(atmFile, det):
-    freqs, temps, trans = np.loadtxt(atmFile, dtype=np.float, unpack=True, usecols=[0, 2, 3]) #frequency/efficiency pairs from input file
+    """Loads an optical element from specified atmosphere file"""
+    freqs, temps, trans = np.loadtxt(atmFile, dtype=np.float, unpack=True, usecols=[0, 2, 3]) #frequency/tempRJ/efficiency arrays from input files
     freqs*=GHz # [Hz]
-
-    #Reads Rayleigh Jeans temperature from file and takes average
-    tempF = interpolate.interp1d(freqs, temps, kind = "linear")
-    x = np.linspace(det.flo, det.fhi, 400)
-    y = tempF(x)
-    aveTemp = intg.simps(y, x=x)/(det.fhi - det.flo)
-    e = OpticalElement("Atm", det, aveTemp, {"Freqs": freqs, "EffCurve": trans})
     
+    atmTemp = 300. # [K]
+    emis = temps / atmTemp
+    e = OpticalElement("Atm", det, atmTemp, {"Freqs": freqs, "EffCurve": trans, "EmisCurve": emis})
     return e
+    
+    
+    #Reads Rayleigh Jeans temperature from file and takes average
+#    tempF = interpolate.interp1d(freqs, temps, kind = "linear")
+#    x = np.linspace(det.flo, det.fhi, 400)
+#    y = tempF(x)
+#    aveTemp = intg.simps(y, x=x)/(det.fhi - det.flo)
+#    e = OpticalElement("Atm", det, aveTemp, {"Freqs": freqs, "EffCurve": trans})
+#    
+#    return e
 
 def loadOpticalChain(opticsFile,det, theta = np.deg2rad(15./2)):
-    """
-    Returns list of optical elements from opticalChain.txt file.
-    
-    Parameters
-    --------
-    
-    opticsFile : string
-        optical chain file 
-    det : Detector
-        detector object of telescope
-    theta : float [rad]
-        Incident angle for Small Aperture
-    
-    """
+    """Returns list of optical elements from opticalChain.txt file. """
     
     data = np.loadtxt(opticsFile, dtype=np.str)
     keys = data[0]
@@ -293,9 +178,4 @@ def loadOpticalChain(opticsFile,det, theta = np.deg2rad(15./2)):
         elements.append(e)
 
     return elements
-
-if __name__ == "__main__":
-    load
-
-
 

@@ -18,7 +18,7 @@ expDir = "Experiments/small_aperture/LargeTelescope/"
 #expDir = "Experiments/small_aperture/WarmHWP/"
 atmFile = "src/Atacama_1000um_60deg.txt"
 
-theta = 0
+theta = 20
 hwpFile = "HWP_Mueller/Mueller_AR/Mueller_V2_nu150.0_no3p068_ne3p402_ARcoat_thetain%d.0.txt"%theta
 bid = 2
 
