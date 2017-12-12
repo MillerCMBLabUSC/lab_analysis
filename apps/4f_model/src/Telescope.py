@@ -28,9 +28,7 @@ class Telescope:
         self.det = dt.Detector(channelFile, cameraFile, bandID)
         self.freqs = np.linspace(self.det.flo, self.det.fhi, 400) #Frequency array of the detector
         
-        """
-            Creating the Optical Chain
-        """
+        """Creating the Optical Chain"""
         self.elements = [] #List of optical elements
 
     
@@ -71,6 +69,7 @@ class Telescope:
         
         
     def propSpectrum(self):
+        """Stores incident unpolarized power on each element in UPspecs"""
         self.UPspecs = [np.zeros(len(self.freqs))]  #Unpolarized spectrum before each element
         
         for (i, el) in enumerate(self.elements):
@@ -100,14 +99,13 @@ class Telescope:
             self.a4 += e.Ip(self.det.band_center)
         
     def getA4(self):
+        """Gets A4 power at the detector in pW"""
         self.A4 = 0
         for (i, e) in enumerate(self.elements[:self.hwpIndex]):            
             ppEmitted = th.weightedSpec(self.freqs, e.temp, e.pEmis)
             ppTransmitted = map(e.Ip, self.freqs)*self.UPspecs[i]
             specAtDetector = (ppEmitted + ppTransmitted)* map(lambda x : self.cumEff(i, x), self.freqs)
             ppTotal = .5 * abs(th.powFromSpec(self.freqs, specAtDetector))
-#            if ppTotal!=0:
-#                print e.name, ppTotal*pW
             self.A4 += ppTotal
             
     

@@ -28,17 +28,9 @@ tel = tp.Telescope(expDir, atmFile, hwpFile, bid, **opts)
 
 hwp = tel.elements[tel.hwpIndex]
 
-print "pEmis", hwp.pEmis(tel.det.band_center)
-
-print "A2 (pW)", tel.A2 /tel.cumEff(0, tel.det.band_center) * pW
 print "A2 (KRJ)", tel.A2 /tel.cumEff(0, tel.det.band_center)  /th.kB / (tel.det.band_center * tel.det.fbw)
-print "A2 (K)", tel.A2 / tel.dPdT
-
-
-print "A4", tel.A4
-print "A4 (pW)", tel.A4 / tel.cumEff(0, tel.det.band_center) * pW
 print "A4 (KRJ)", tel.A4 /tel.cumEff(0, tel.det.band_center)  /th.kB / (tel.det.band_center * tel.det.fbw)
-print "A4 (K)", tel.A4 / tel.dPdT
+print "Tel Efficiency", tel.cumEff(0, tel.det.band_center)
 
 
 
