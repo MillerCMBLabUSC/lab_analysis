@@ -1,0 +1,533 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 2.7 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated as
+% required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+\sortlist[entry]{none/global/}
+  \entry{takakura_performance_2017}{article}{}
+    \name{author}{53}{}{%
+      {{hash=TS}{%
+         family={Takakura},
+         family_i={T\bibinitperiod},
+         given={Satoru},
+         given_i={S\bibinitperiod},
+      }}%
+      {{hash=AM}{%
+         family={Aguilar},
+         family_i={A\bibinitperiod},
+         given={Mario},
+         given_i={M\bibinitperiod},
+      }}%
+      {{hash=AY}{%
+         family={Akiba},
+         family_i={A\bibinitperiod},
+         given={Yoshiki},
+         given_i={Y\bibinitperiod},
+      }}%
+      {{hash=AK}{%
+         family={Arnold},
+         family_i={A\bibinitperiod},
+         given={Kam},
+         given_i={K\bibinitperiod},
+      }}%
+      {{hash=BC}{%
+         family={Baccigalupi},
+         family_i={B\bibinitperiod},
+         given={Carlo},
+         given_i={C\bibinitperiod},
+      }}%
+      {{hash=BD}{%
+         family={Barron},
+         family_i={B\bibinitperiod},
+         given={Darcy},
+         given_i={D\bibinitperiod},
+      }}%
+      {{hash=BS}{%
+         family={Beckman},
+         family_i={B\bibinitperiod},
+         given={Shawn},
+         given_i={S\bibinitperiod},
+      }}%
+      {{hash=BD}{%
+         family={Boettger},
+         family_i={B\bibinitperiod},
+         given={David},
+         given_i={D\bibinitperiod},
+      }}%
+      {{hash=BJ}{%
+         family={Borrill},
+         family_i={B\bibinitperiod},
+         given={Julian},
+         given_i={J\bibinitperiod},
+      }}%
+      {{hash=CS}{%
+         family={Chapman},
+         family_i={C\bibinitperiod},
+         given={Scott},
+         given_i={S\bibinitperiod},
+      }}%
+      {{hash=CY}{%
+         family={Chinone},
+         family_i={C\bibinitperiod},
+         given={Yuji},
+         given_i={Y\bibinitperiod},
+      }}%
+      {{hash=CA}{%
+         family={Cukierman},
+         family_i={C\bibinitperiod},
+         given={Ari},
+         given_i={A\bibinitperiod},
+      }}%
+      {{hash=DA}{%
+         family={Ducout},
+         family_i={D\bibinitperiod},
+         given={Anne},
+         given_i={A\bibinitperiod},
+      }}%
+      {{hash=ET}{%
+         family={Elleflot},
+         family_i={E\bibinitperiod},
+         given={Tucker},
+         given_i={T\bibinitperiod},
+      }}%
+      {{hash=EJ}{%
+         family={Errard},
+         family_i={E\bibinitperiod},
+         given={Josquin},
+         given_i={J\bibinitperiod},
+      }}%
+      {{hash=FG}{%
+         family={Fabbian},
+         family_i={F\bibinitperiod},
+         given={Giulio},
+         given_i={G\bibinitperiod},
+      }}%
+      {{hash=FT}{%
+         family={Fujino},
+         family_i={F\bibinitperiod},
+         given={Takuro},
+         given_i={T\bibinitperiod},
+      }}%
+      {{hash=GN}{%
+         family={Galitzki},
+         family_i={G\bibinitperiod},
+         given={Nicholas},
+         given_i={N\bibinitperiod},
+      }}%
+      {{hash=GWN}{%
+         family={Goeckner-Wald},
+         family_i={G\bibinitperiod-W\bibinitperiod},
+         given={Neil},
+         given_i={N\bibinitperiod},
+      }}%
+      {{hash=HNW}{%
+         family={Halverson},
+         family_i={H\bibinitperiod},
+         given={Nils\bibnamedelima W.},
+         given_i={N\bibinitperiod\bibinitdelim W\bibinitperiod},
+      }}%
+      {{hash=HM}{%
+         family={Hasegawa},
+         family_i={H\bibinitperiod},
+         given={Masaya},
+         given_i={M\bibinitperiod},
+      }}%
+      {{hash=HK}{%
+         family={Hattori},
+         family_i={H\bibinitperiod},
+         given={Kaori},
+         given_i={K\bibinitperiod},
+      }}%
+      {{hash=HM}{%
+         family={Hazumi},
+         family_i={H\bibinitperiod},
+         given={Masashi},
+         given_i={M\bibinitperiod},
+      }}%
+      {{hash=HC}{%
+         family={Hill},
+         family_i={H\bibinitperiod},
+         given={Charles},
+         given_i={C\bibinitperiod},
+      }}%
+      {{hash=HL}{%
+         family={Howe},
+         family_i={H\bibinitperiod},
+         given={Logan},
+         given_i={L\bibinitperiod},
+      }}%
+      {{hash=IY}{%
+         family={Inoue},
+         family_i={I\bibinitperiod},
+         given={Yuki},
+         given_i={Y\bibinitperiod},
+      }}%
+      {{hash=JAH}{%
+         family={Jaffe},
+         family_i={J\bibinitperiod},
+         given={Andrew\bibnamedelima H.},
+         given_i={A\bibinitperiod\bibinitdelim H\bibinitperiod},
+      }}%
+      {{hash=JO}{%
+         family={Jeong},
+         family_i={J\bibinitperiod},
+         given={Oliver},
+         given_i={O\bibinitperiod},
+      }}%
+      {{hash=KD}{%
+         family={Kaneko},
+         family_i={K\bibinitperiod},
+         given={Daisuke},
+         given_i={D\bibinitperiod},
+      }}%
+      {{hash=KN}{%
+         family={Katayama},
+         family_i={K\bibinitperiod},
+         given={Nobuhiko},
+         given_i={N\bibinitperiod},
+      }}%
+      {{hash=KB}{%
+         family={Keating},
+         family_i={K\bibinitperiod},
+         given={Brian},
+         given_i={B\bibinitperiod},
+      }}%
+      {{hash=KR}{%
+         family={Keskitalo},
+         family_i={K\bibinitperiod},
+         given={Reijo},
+         given_i={R\bibinitperiod},
+      }}%
+      {{hash=KT}{%
+         family={Kisner},
+         family_i={K\bibinitperiod},
+         given={Theodore},
+         given_i={T\bibinitperiod},
+      }}%
+      {{hash=KN}{%
+         family={Krachmalnicoff},
+         family_i={K\bibinitperiod},
+         given={Nicoletta},
+         given_i={N\bibinitperiod},
+      }}%
+      {{hash=KA}{%
+         family={Kusaka},
+         family_i={K\bibinitperiod},
+         given={Akito},
+         given_i={A\bibinitperiod},
+      }}%
+      {{hash=LAT}{%
+         family={Lee},
+         family_i={L\bibinitperiod},
+         given={Adrian\bibnamedelima T.},
+         given_i={A\bibinitperiod\bibinitdelim T\bibinitperiod},
+      }}%
+      {{hash=LD}{%
+         family={Leon},
+         family_i={L\bibinitperiod},
+         given={David},
+         given_i={D\bibinitperiod},
+      }}%
+      {{hash=LL}{%
+         family={Lowry},
+         family_i={L\bibinitperiod},
+         given={Lindsay},
+         given_i={L\bibinitperiod},
+      }}%
+      {{hash=MF}{%
+         family={Matsuda},
+         family_i={M\bibinitperiod},
+         given={Frederick},
+         given_i={F\bibinitperiod},
+      }}%
+      {{hash=MT}{%
+         family={Matsumura},
+         family_i={M\bibinitperiod},
+         given={Tomotake},
+         given_i={T\bibinitperiod},
+      }}%
+      {{hash=NM}{%
+         family={Navaroli},
+         family_i={N\bibinitperiod},
+         given={Martin},
+         given_i={M\bibinitperiod},
+      }}%
+      {{hash=NH}{%
+         family={Nishino},
+         family_i={N\bibinitperiod},
+         given={Haruki},
+         given_i={H\bibinitperiod},
+      }}%
+      {{hash=PH}{%
+         family={Paar},
+         family_i={P\bibinitperiod},
+         given={Hans},
+         given_i={H\bibinitperiod},
+      }}%
+      {{hash=PJ}{%
+         family={Peloton},
+         family_i={P\bibinitperiod},
+         given={Julien},
+         given_i={J\bibinitperiod},
+      }}%
+      {{hash=PD}{%
+         family={Poletti},
+         family_i={P\bibinitperiod},
+         given={Davide},
+         given_i={D\bibinitperiod},
+      }}%
+      {{hash=PG}{%
+         family={Puglisi},
+         family_i={P\bibinitperiod},
+         given={Giuseppe},
+         given_i={G\bibinitperiod},
+      }}%
+      {{hash=RCL}{%
+         family={Reichardt},
+         family_i={R\bibinitperiod},
+         given={Christian\bibnamedelima L.},
+         given_i={C\bibinitperiod\bibinitdelim L\bibinitperiod},
+      }}%
+      {{hash=RC}{%
+         family={Ross},
+         family_i={R\bibinitperiod},
+         given={Colin},
+         given_i={C\bibinitperiod},
+      }}%
+      {{hash=SP}{%
+         family={Siritanasak},
+         family_i={S\bibinitperiod},
+         given={Praween},
+         given_i={P\bibinitperiod},
+      }}%
+      {{hash=SA}{%
+         family={Suzuki},
+         family_i={S\bibinitperiod},
+         given={Aritoki},
+         given_i={A\bibinitperiod},
+      }}%
+      {{hash=TO}{%
+         family={Tajima},
+         family_i={T\bibinitperiod},
+         given={Osamu},
+         given_i={O\bibinitperiod},
+      }}%
+      {{hash=TS}{%
+         family={Takatori},
+         family_i={T\bibinitperiod},
+         given={Sayuri},
+         given_i={S\bibinitperiod},
+      }}%
+      {{hash=TG}{%
+         family={Teply},
+         family_i={T\bibinitperiod},
+         given={Grant},
+         given_i={G\bibinitperiod},
+      }}%
+    }
+    \keyw{Astrophysics - Cosmology and Nongalactic Astrophysics, Astrophysics -
+  Instrumentation and Methods for Astrophysics, Physics - Instrumentation and
+  Detectors}
+    \strng{namehash}{TS+1}
+  \strng{fullhash}{TSAMAYAKBCBDBSBDBJCSCYCADAETEJFGFTGNGWNHNWHMHKHMHCHLIYJAHJOKDKNKBKRKTKNKALATLDLLMFMTNMNHPHPJPDPGRCLRCSPSATOTSTG1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{abstract}{%
+    A continuously rotating half-wave plate (CRHWP) is a promising tool to
+  improve the sensitivity to large angular scales in cosmic microwave
+  background (CMB) polarization measurements. With a CRHWP, single detectors
+  can measure all three of the Stokes parameters, \$I\$, \$Q\$ and \$U\$,
+  thereby avoiding the set of systematic errors that can be introduced by
+  mismatches in the properties of orthogonal detector pairs. We focus on the
+  implementation of CRHWPs in large aperture telescopes (i.e. the primary
+  mirror is larger than the current maximum half-wave plate diameter of
+  \${\textbackslash}sim\$0.5 m), where the CRHWP can be placed between the
+  primary mirror and focal plane. In this configuration, one needs to address
+  the intensity to polarization (\$I\{{\textbackslash}rightarrow\}P\$) leakage
+  of the optics, which becomes a source of 1/f noise and also causes
+  differential gain systematics that arise from CMB temperature fluctuations.
+  In this paper, we present the performance of a CRHWP installed in the
+  POLARBEAR experiment, which employs a Gregorian telescope with a 2.5 m
+  primary illumination pattern. The CRHWP is placed near the prime focus
+  between the primary and secondary mirrors. We find that the
+  \$I\{{\textbackslash}rightarrow\}P\$ leakage is larger than the expectation
+  from the physical properties of our primary mirror, resulting in a 1/f knee
+  of 100 mHz. The excess leakage could be due to imperfections in the detector
+  system, i.e. detector non-linearity in the responsivity and time-constant. We
+  demonstrate, however, that by subtracting the leakage correlated with the
+  intensity signal, the 1/f noise knee frequency is reduced to 32 mHz
+  (\${\textbackslash}ell {\textbackslash}sim\$39 for our scan strategy), which
+  is sufficient to probe the primordial B-mode signal. We also discuss methods
+  for further noise subtraction in future projects where the precise
+  temperature control of instrumental components and the leakage reduction will
+  play a key role.%
+    }
+    \verb{doi}
+    \verb 10.1088/1475-7516/2017/05/008
+    \endverb
+    \field{issn}{1475-7516}
+    \field{note}{arXiv: 1702.07111}
+    \field{number}{05}
+    \field{pages}{008\bibrangedash 008}
+    \field{title}{Performance of a continuously rotating half-wave plate on the
+  {POLARBEAR} telescope}
+    \verb{url}
+    \verb http://arxiv.org/abs/1702.07111
+    \endverb
+    \field{volume}{2017}
+    \verb{file}
+    \verb arXiv\:1702.07111 PDF:/home/jlashner/.zotero/zotero/k1v4iqob.default/
+    \verb zotero/storage/EE66D65S/Takakura et al. - 2017 - Performance of a con
+    \verb tinuously rotating half-wave p.pdf:application/pdf;arXiv.org Snapshot
+    \verb :/home/jlashner/.zotero/zotero/k1v4iqob.default/zotero/storage/H3RNCX
+    \verb ND/1702.html:text/html
+    \endverb
+    \field{journaltitle}{Journal of Cosmology and Astroparticle Physics}
+    \field{annotation}{%
+    Comment: 27 pages, 5 figures, 3 tables, to be submitted to JCAP%
+    }
+    \field{month}{05}
+    \field{year}{2017}
+  \endentry
+
+  \entry{pisano_polarisation_2006}{article}{}
+    \name{author}{3}{}{%
+      {{hash=PG}{%
+         family={Pisano},
+         family_i={P\bibinitperiod},
+         given={Giampaolo},
+         given_i={G\bibinitperiod},
+      }}%
+      {{hash=APAR}{%
+         family={Ade},
+         family_i={A\bibinitperiod},
+         given={Peter A.\bibnamedelima R.},
+         given_i={P\bibinitperiod\bibinitdelim A\bibinitperiod\bibinitdelim
+  R\bibinitperiod},
+      }}%
+      {{hash=WS}{%
+         family={Weaver},
+         family_i={W\bibinitperiod},
+         given={Samuel},
+         given_i={S\bibinitperiod},
+      }}%
+    }
+    \keyw{Frequency selective surfaces, Polarisation systematics, Quasi-optical
+  grid filters}
+    \strng{namehash}{PGAPARWS1}
+    \strng{fullhash}{PGAPARWS1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{abstract}{%
+    Many theories have been developed to describe metal grid filters that are
+  commonly used for wavelength selection in far-infrared and millimetre
+  wavelengths experiments. Application of these filters has shifted from simple
+  photometric measurements to the more demanding requirements needed to
+  accurately measure the polarisation. It has therefore become necessary to
+  investigate residual polarisation effects inherent in these kinds of filter
+  structures. In this work we present an alternative modelling approach, based
+  on finite-element analysis software ({HFSS}) available commercially. To
+  validate the model we have made Fourier transform spectrometer, {FTS},
+  measurements of a real capacitive grid component as a function of incidence
+  angle and grid orientation for both s and p polarisations. The excellent
+  agreement between model and data enable accurate predictions of performance
+  of these structures when used in polarimetric experiments as well as
+  determining the cause of parasitic effects.%
+    }
+    \verb{doi}
+    \verb 10.1016/j.infrared.2005.04.004
+    \endverb
+    \field{issn}{1350-4495}
+    \field{number}{2}
+    \field{pages}{89\bibrangedash 100}
+    \field{title}{Polarisation effects investigations in quasi-optical metal
+  grid filters}
+    \verb{url}
+    \verb http://www.sciencedirect.com/science/article/pii/S1350449505000526
+    \endverb
+    \field{volume}{48}
+    \verb{file}
+    \verb 2005_GP_Mesh_Filters_IFT.pdf:/Users/jacoblashner/Library/Application
+    \verb Support/Zotero/Profiles/sz4oyt5b.default/zotero/storage/WR8ZW72H/2005
+    \verb _GP_Mesh_Filters_IFT.pdf:application/pdf;ScienceDirect Snapshot:/User
+    \verb s/jacoblashner/Library/Application Support/Zotero/Profiles/sz4oyt5b.d
+    \verb efault/zotero/storage/M6QSTPMW/S1350449505000526.html:text/html
+    \endverb
+    \field{journaltitle}{Infrared Physics \& Technology}
+    \field{day}{01}
+    \field{month}{06}
+    \field{year}{2006}
+  \endentry
+
+  \entry{essinger-hileman_transfer_2013}{article}{}
+    \name{author}{1}{}{%
+      {{hash=EHT}{%
+         family={Essinger-Hileman},
+         family_i={E\bibinitperiod-H\bibinitperiod},
+         given={Thomas},
+         given_i={T\bibinitperiod},
+      }}%
+    }
+    \keyw{Astrophysics - Instrumentation and Methods for Astrophysics, Physics
+  - Optics}
+    \strng{namehash}{EHT1}
+    \strng{fullhash}{EHT1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{abstract}{%
+    Birefringent crystals are extensively used to manipulate polarized light.
+  The generalized transfer matrix developed allows efficient calculation of the
+  full polarization state of light transmitted through and reflected by a stack
+  of arbitrarily-many discrete layers of isotropic and birefringent materials
+  at any frequency and angle of incidence. The matrix of a uniaxial
+  birefringent crystal with arbitrary rotation is calculated, along with its
+  reduction to the matrix of an isotropic medium. This method is of great
+  practical importance where tight control of systematic effects is needed in
+  optical systems employing birefringent crystals, one example being wave
+  plates used by cosmic microwave background polarimetry with wide
+  field-of-view telescopes.%
+    }
+    \verb{doi}
+    \verb 10.1364/AO.52.000212
+    \endverb
+    \verb{eprint}
+    \verb 1301.6160
+    \endverb
+    \field{issn}{0003-6935, 1539-4522}
+    \field{number}{2}
+    \field{pages}{212}
+    \field{title}{Transfer matrix for treating stratified media including
+  birefringent crystals}
+    \verb{url}
+    \verb http://arxiv.org/abs/1301.6160
+    \endverb
+    \field{volume}{52}
+    \verb{file}
+    \verb arXiv.org Snapshot:/Users/jacoblashner/Library/Application Support/Zo
+    \verb tero/Profiles/sz4oyt5b.default/zotero/storage/V5QN7AT3/1301.html:text
+    \verb /html
+    \endverb
+    \field{journaltitle}{Applied Optics}
+    \field{annotation}{%
+    Comment: 6 pages, 1 figure, published in Applied Optics%
+    }
+    \field{eprinttype}{arxiv}
+    \field{day}{10}
+    \field{month}{01}
+    \field{year}{2013}
+  \endentry
+\endsortlist
+\endinput

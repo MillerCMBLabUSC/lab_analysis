@@ -116,9 +116,10 @@ def runModel(expDir, bandID, hwpIndex = 9, lensIP = .0004, theta =  0.1308, writ
 
     pW_per_Kcmb = th.dPdT(elements, det)*pW
     effs = [e.Eff(det.band_center) for e in elements[1:]]
+#    effs.insert(0, .979985868865*.9991602)
 #    print effs
     cumEff = reduce(lambda x, y: x * y, effs)
-
+    print cumEff
     #######################################################
     ## Print table
     #######################################################
@@ -186,11 +187,11 @@ if __name__=="__main__":
 #     runModel("Experiments/Comparisons/ebex/LargeTelescope/", 1, False) #---    Run Ebex Comparison
     #runModel("Experiments/Comparisons/pb", 1, False) #---    Run PB Comparison
 
-    det,elements,_,_ = runModel("Experiments/small_aperture/LargeTelescope/", 2, writeFile = False, theta = np.deg2rad(30./2), printChain = True)
+#    det,elements,_,_ = runModel("Experiments/small_aperture/LargeTelescope/", 2, writeFile = False, theta = np.deg2rad(30./2), printChain = True)
     
     
     
-#    runModel("Experiments/V2_dichroic/45cm/HF_45cm_3waf_silicon/LargeTelescope/", 1, writeFile = False,  hwpIndex=9 )
+    runModel("Experiments/V2_dichroic/45cm/LF_45cm_3waf_silicon/LargeTelescope/", 1, writeFile = False,  hwpIndex=9, printChain=True)
 #    
 #    
 #    
