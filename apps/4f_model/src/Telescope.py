@@ -1,16 +1,13 @@
 
 import numpy as np
+import scipy.integrate as intg
+
 import thermo as th
 import OpticalElement as opt
 import Detector as dt
-import propSpectrum as ps
 import matplotlib.pyplot as plt
-import glob as gb
 
-#########################################################
-#   Input Data                                             
-#########################################################
-
+Tcmb = 2.725 # CMB temp [K]
 
 # Units and Constants
 GHz = 1.e9 # GHz -> Hz
@@ -47,20 +44,23 @@ class Telescope:
         fs, T, rho, _, _ = np.loadtxt(hwpFile, dtype=np.float, unpack=True)
         self.elements[self.hwpIndex].updateParams({"Freqs": fs, "EffCurve": T, "IPCurve": rho})
         
-        
-        
-        self.dPdT = th.dPdT(self.elements, self.det)
+        #Calculates conversion from pW to Kcmb
+        aniSpec  = lambda x: th.aniPowSpec(1, x, Tcmb)
+        self.toKcmb = 1/intg.quad(aniSpec, self.det.flo, self.det.fhi)[0]
+        #Conversion from pW to KRJ
+        self.toKRJ = 1 /(th.kB *self.det.band_center * self.det.fbw)
+
         
         #Propagates Unpolarized Spectrum through each element
         self.propSpectrum()
         
-        #
         self.geta2()
         self.getA2()
         self.geta4()
         self.getA4()
                  
     def cumEff(self, index, freq):
+        """Total efficiency of everthing after the i'th optical element"""
         cumEff = 1.
         for i in range(index + 1, len(self.elements)):
             cumEff *= self.elements[i].Eff(freq)

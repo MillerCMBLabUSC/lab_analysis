@@ -14,8 +14,8 @@ import matplotlib.pyplot as plt
 pW = 10 ** 12
 GHz = 10**9
 
-expDir = "Experiments/small_aperture/LargeTelescope/"    
-#expDir = "Experiments/small_aperture/WarmHWP/"
+#fexpDir = "Experiments/small_aperture/LargeTelescope/"    
+expDir = "Experiments/small_aperture/WarmHWP/"
 atmFile = "src/Atacama_1000um_60deg.txt"
 
 theta = 20
@@ -33,22 +33,6 @@ print "A4 (KRJ)", tel.A4 /tel.cumEff(0, tel.det.band_center)  /th.kB / (tel.det.
 print "Tel Efficiency", tel.cumEff(0, tel.det.band_center)
 
 
-
-#print tel.A4 / tel.cumEff(0, tel.det.band_center) * pW
-#print tel.A4 / tel.dPdT
-
-
-#
-#for (i, theta) in enumerate(map(np.deg2rad, [0, 20])):
-#    print "theta: ", theta
-#    opts = {'theta': theta}
-#    hwpFile = "HWP_Mueller/Mueller_AR/Mueller_V2_nu150.0_no3p068_ne3p402_ARcoat_thetain%s.txt"%(["0.0", "20.0"][i])
-#    tel = tp.Telescope(expDir, atmFile, hwpFile, bid, **opts)
-#    print "a2:", tel.a2
-#    print "A2 (pW): ", tel.A2 / tel.cumEff(0, tel.det.band_center) * pW
-#    print "A2 (Kcmb): ", tel.A2 / tel.dPdT, "\n"
-
-    
 
 
 

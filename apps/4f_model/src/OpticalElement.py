@@ -172,14 +172,11 @@ def loadOpticalChain(opticsFile,det, theta = np.deg2rad(15./2)):
             except:
                 params[k] = value       
                 
-        name = params["Element"]        
+        name = params["Element"]    
         
-        # Adds IP and polarized absorption calculated using tmm
-        if name == "AluminaF":
-            (ip, polAbs) = IPCalc.getFilterIP(det.band_center, det.fbw, theta)
-            params.update({"IP": ip, "PolAbs": polAbs})
-        elif name == "Window": 
-            (ip, polAbs) = IPCalc.getWinIP(det.band_center, det.fbw, theta)
+        ## Calculates differential transmission and absorption using tmm        
+        if name == "AluminaF" or name == "Window":
+            (ip, polAbs) = IPCalc.getDiffCoeffs(name, det.band_center, det.fbw, theta)
             params.update({"IP": ip, "PolAbs": polAbs})
 
         e = OpticalElement(name, det, params["Temp"], params = params)        
