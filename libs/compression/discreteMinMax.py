@@ -40,8 +40,9 @@ def discreteMinMax(x):
             if top:
                 discreteMax.append([i, x[i]])
             down = False
+    #print(discreteMin)
+    #discreteMax = np.array(discreteMax)
+    #discreteMin = np.array(discreteMin)
 
-    discreteMax = np.array(discreteMax)
-    discreteMin = np.array(discreteMin)
 
-    return (discreteMin, discreteMax)
+    return discreteMin, discreteMax

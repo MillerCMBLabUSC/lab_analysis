@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 x       - input signal (vector of real numbers)
-qResol  - Resolution in dBs
-qResid  - Residual energy 
+resolution  - Resolution in dBs
+inputResidual  - Residual energy
 step   - Gradient step size (normally is set to 1, can take values 0-1) 
 """
 
@@ -12,30 +12,32 @@ import math
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridpsec
+
 
 
 def splineEMD(x,resolution,inputResidual,step):
     """ produces a spline interpolated minimum and maximum envelope, and does the 
     EMD decomposition until the resolution requirement is met and then until the residual 
-    energy is sufficiently small
+    is close enough to the original signal energy
     """
     
-    signal = x                                      #get copy of original signal
+    signal = x                                                       #get copy of original signal
     t = np.linspace(0,len(signal)-1,len(signal))                    
-    pX = np.linalg.norm(x)**2                              #Original signal energy
-    siglen = len(signal)                        #Signal length
-    
+    pX = np.linalg.norm(x)**2                                        #Original signal energy
+    siglen = len(signal)                                             #Signal length
     #now we are ready to decompose the signal into IMFs
-    
-    imfs = []                       #empty matrix of IMFs and residue
-    iniResidual = 0                 #signal has not been sifted and so energies are equal
-    #number = osc(signal)               
+
+    imfs = []                                                        #empty matrix of IMFs and residue
+    iniResidual = 0                                                #signal has not been sifted and so energies are equal
     count = 0
     osc = math.inf
     while iniResidual < inputResidual and osc > 4:
-        #while the signal has some energy 
-        iImf = signal        
+        #while the signal has some energy
+        iImf = signal
         (discreteMin,discreteMax) = discreteMinMax(iImf)
+        if len(discreteMin) == 0 or len(discreteMax) == 0:           #if signal has no extrema, you are done
+            break
         (parabolicMin,parabolicMax) = interp(iImf,discreteMin,discreteMax)
         (parabolicMin,parabolicMax) = extrap(iImf,parabolicMin,parabolicMax)
         if (abs(len(parabolicMin)-len(parabolicMax)) > 2):
@@ -43,15 +45,15 @@ def splineEMD(x,resolution,inputResidual,step):
         topenv = CubicSpline(parabolicMax[:,0],parabolicMax[:,1])    #interpolation function for top envelope
         botenv = CubicSpline(parabolicMin[:,0],parabolicMin[:,1])    #interpolation function for bottom envelope
         osc = len(discreteMax) + len(discreteMin)
-        mean = (topenv(t) + botenv(t))/2                                              #take average of top and bottom signals
+        mean = (topenv(t) + botenv(t))/2                             #take average of top and bottom signals
         while True:
-            pImf = np.linalg.norm(iImf)**2                                      # IMF energy
-            pMean = np.linalg.norm(mean)**2                                     # Mean energy
+            pImf = np.linalg.norm(iImf)**2                           # IMF energy
+            pMean = np.linalg.norm(mean)**2                          # Mean energy
             if pMean > 0:
                 res = 10*np.log10(pImf/pMean)                   
             if res>resolution:
-                break                   #Resolution reached
-            #Resolution not reached
+                break                                                #Resolution reached
+            #Resolution not reached, so repeat process
             iImf = iImf - step*mean
             (discreteMin,discreteMax) = discreteMinMax(iImf)
             (parabolicMin,parabolicMax) = interp(iImf,discreteMin,discreteMax)
@@ -59,37 +61,48 @@ def splineEMD(x,resolution,inputResidual,step):
             topenv = CubicSpline(parabolicMax[:,0],parabolicMax[:,1])
             botenv = CubicSpline(parabolicMin[:,0],parabolicMin[:,1])
             mean = (topenv(t) + botenv(t))/2
-        print(len(parabolicMax))
         plt.figure()
-        plt.plot(t,botenv(t),t,-botenv(t)+mean,t,iImf)
+        plt.plot(t,botenv(t),t,topenv(t),t,iImf,t,mean)
+        plt.scatter(parabolicMin[:,0],parabolicMin[:,1])
+        plt.scatter(parabolicMax[:,0],parabolicMax[:,1])
         plt.show()
         iImf = np.array(iImf)
-        imfs = np.append(imfs,iImf,axis=0)
+        imfs = np.append(imfs,iImf,axis=0)                           #store IMF in list
         count = count + 1
-        #store IMF in list
-        signal = signal - iImf                                  #subtract IMF from signal
+        signal = signal - iImf                                       #subtract IMF from signal
         pSig = np.linalg.norm(signal)**2
         if pSig > 0:
-            print(pSig/pX)                                            #if the signal isn't a residual, calculate the power of the residual
+            #print(pSig/pX)                          #if the signal isn't a residual, calculate the power of the residual
             iniResidual = 10*np.log10(pX/pSig)
         else:
             iniResidual = math.inf      
-    if pSig/pX > 0: #or some really small positive number (might change later)
-        #print('residual')
+    if pSig/pX > 0:                                           #or some really small positive number (might change later)
         residual = signal
         imfs = np.append(imfs, np.array(residual),axis=0)
         count = count + 1
-    imfs = np.array(imfs) #array with imfs and residual in last row
+
+    imfs = np.array(imfs)                                           #array with imfs and residual in last row
     imfs = imfs.reshape(count,int(len(x)))
     
-    recon = np.zeros((siglen,))            #create empty reconstructed matrix
+    recon = np.zeros((siglen,))                                     #create empty reconstruction matrix
     for i in range(len(imfs)):
-        recon = recon + imfs[i]         #add the Imfs and residual together
+        j = i + 1
+        recon = recon + imfs[i]                                     #add the IMFs and residual together and plot
+        #plt.subplot(len(imfs)+1,1,j)
         #plt.plot(t,imfs[i])
-        
-    plt.figure()
-    plt.plot(t,recon-x)                 #plot the difference between the reconstructed signal minus the input signal
-    plt.show()
+        #plt.xlabel('time')
+        #plt.ylabel('Amplitude')
+        #plt.title('IMF %s' %j)
+
+    #plt.subplot(len(imfs)+1,1,j+1)
+    #plt.plot(t,recon)
+    #plt.title('Sin(t/2) + t/10')
+    #plt.xlabel('time')
+    #plt.ylabel('Amplitude')
+    #plt.tight_layout()
+    #plt.show()
+    #pRecon = np.linalg.norm(recon)**2
+    #print(pX-pRecon)
 
     return imfs
    
@@ -142,7 +155,6 @@ def interp(x,discreteMin,discreteMax):
     takes as input the locations of the discrete minimums and maximums, interpolates to 
     gain a more precise picture of where the mins and maxs are, then outputs those locations
     """
-       
     [tMin,tMax] = [discreteMin[:,0],discreteMax[:,0]]
         
     [mincoeff,maxcoeff] = [[],[]]
@@ -158,7 +170,6 @@ def interp(x,discreteMin,discreteMax):
         A.append([i**2,i,1])
         A.append([(i+1)**2,i+1,1])
         A = np.array(A); b = np.array([y1,y2,y3]); mincoeff.append(np.linalg.solve(A,b))
-        #print(len(mincoeff),len(lengths))
     mincoeff = np.vstack([mincoeff[0:len(mincoeff)]])
     
     
@@ -248,13 +259,16 @@ def extrap(x,discreteMin,discreteMax):
 
 if __name__ == "__main__":
     from lab_analysis.libs.noise import simulate
+    import numpy as np
+    x = np.linspace(0,100,101)
+    y = np.sin(x/2)+.1*x
     alpha = 1.0
     white_noise_sigma = 1.0
-    length_ts = 500
+    length_ts = 50
     f_knee = 2.0
     sample_rate = 100.0
     noise = simulate.simulate_noise(alpha, white_noise_sigma,length_ts, f_knee, sample_rate)
-    vec = splineEMD(noise,10,5,.6)
+    vec = splineEMD(noise,40,30,1)
     
 
 
