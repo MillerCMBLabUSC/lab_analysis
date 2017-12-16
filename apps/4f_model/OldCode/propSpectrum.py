@@ -39,12 +39,10 @@ def A4Prop(optElements, det, hwpIndex):
             ipPower   = np.zeros(N)
 
         #Total U/P power introduced by each element
-        UPTotal = UPEmitted - ipPower
+        UPTotal = UPEmitted
         PPTotal = PPEmitted + ipPower
         
         
-        print elem.name, th.powFromSpec(freqs, specs[-1]) * pW, th.powFromSpec(freqs, ipPower) * pW,\
-            th.powFromSpec(freqs, PPEmitted)* pW, th.powFromSpec(freqs, PPTotal) * pW
 #        if elem.name == "Window":
 #            plt.plot(freqs, PPTotal)
 #            plt.plot(freqs, np.ones(len(freqs))* 2 *kB*elem.temp * elem.pEmis(det.band_center))
@@ -63,7 +61,6 @@ def A4Prop(optElements, det, hwpIndex):
             cumEff = lambda f : 1
             cumPEff = lambda f : 1
             
-        print cumPEff(det.band_center)
             
             
             

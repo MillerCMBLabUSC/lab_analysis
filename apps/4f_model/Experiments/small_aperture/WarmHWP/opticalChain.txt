@@ -1,6 +1,7 @@
 #
 Element		Temp   Thick   Index   LossTan   Conduct   Absorb		Spill   SpillTemp   SurfaceRough  Refl    ScattFrac   ScattTemp
 #		[K]    [mm]            [e-4]     [e6 S/m]  NA        		NA      [K]         [um RMS]	  NA	  NA          [K]
+HWP          300.0  3.00    3.10    0.5	 NA	   NA			NA      NA          NA	          0.020   NA	      NA	 
 Window		300.0  NA      NA      NA	 NA	   [0.005,0.010]	0.015   273.0       NA	          0.010   NA	      NA
 IRShader1	298.0  NA      NA      NA	 NA	   [0.001,0.001]	NA      NA          NA	          0.000   NA	      NA
 IRShader2	293.0  NA      NA      NA	 NA	   [0.001,0.001]	NA      NA          NA	          0.000   NA	      NA	 
@@ -11,7 +12,6 @@ IRShader2	70.00  NA      NA      NA	 NA	   [0.001,0.001]	NA      NA          NA	
 IRShader3	65.00  NA      NA      NA	 NA	   [0.001,0.001]	NA      NA          NA	          0.000   NA	      NA	 
 IRShader4	61.00  NA      NA      NA	 NA	   [0.001,0.001]	NA      NA          NA	          0.000   NA	      NA	 
 AluminaF	42.00  2.00    3.10    0.5	 NA	   NA			NA      NA          NA	          0.020   NA	      NA	 
-HWP		41.00  3.00    3.10    0.5	 NA	   NA			NA      NA          NA	          0.020   NA	      NA	 
 AluminaF	40.00  2.00    3.10    0.5	 NA	   NA			NA      NA          NA	          0.020   NA	      NA	 
 AluminaF	5.000  2.00    3.10    0.5	 NA	   NA			NA      NA          NA	          0.020   NA	      NA
 LowPass1	4.000  NA      NA      NA	 NA	   [0.010,0.010]	NA      NA          NA	          0.050   NA	      NA
