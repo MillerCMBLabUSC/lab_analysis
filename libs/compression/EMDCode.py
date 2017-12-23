@@ -30,13 +30,21 @@ def splineEMD(x,resolution,inputResidual,step):
 
     imfs = []                                                        #empty matrix of IMFs and residue
     iniResidual = 0                                                #signal has not been sifted and so energies are equal
-    count = 0
+    count = 1
     osc = math.inf
+    extrema = []
+    #plt.figure()
+    #plt.plot(t,signal)
+    #plt.xlabel('time')
+    #plt.ylabel('Amplitude')
+    #plt.title('Original signal')
+    #plt.show()
     while iniResidual < inputResidual and osc > 4:
         #while the signal has some energy
         iImf = signal
+        pSig = np.linalg.norm(signal)**2
         (discreteMin,discreteMax) = discreteMinMax(iImf)
-        if len(discreteMin) == 0 or len(discreteMax) == 0:           #if signal has no extrema, you are done
+        if len(discreteMin) < 2 or len(discreteMax) < 2:           #if signal has no extrema, you are done
             break
         (parabolicMin,parabolicMax) = interp(iImf,discreteMin,discreteMax)
         (parabolicMin,parabolicMax) = extrap(iImf,parabolicMin,parabolicMax)
@@ -61,50 +69,47 @@ def splineEMD(x,resolution,inputResidual,step):
             topenv = CubicSpline(parabolicMax[:,0],parabolicMax[:,1])
             botenv = CubicSpline(parabolicMin[:,0],parabolicMin[:,1])
             mean = (topenv(t) + botenv(t))/2
-        plt.figure()
-        plt.plot(t,botenv(t),t,topenv(t),t,iImf,t,mean)
-        plt.scatter(parabolicMin[:,0],parabolicMin[:,1])
-        plt.scatter(parabolicMax[:,0],parabolicMax[:,1])
-        plt.show()
+        extrema.append(discreteMax)
+        #plt.figure()
+        #plt.plot(t,botenv(t),t,-botenv(t),t,iImf,t,mean)
+        #plt.scatter(parabolicMin[:,0],parabolicMin[:,1])
+        #plt.scatter(parabolicMax[:,0],parabolicMax[:,1])
+        #plt.xlabel('time')
+        #plt.ylabel('Amplitude')
+        #plt.title('IMF %s' %count)
+        #plt.show()
         iImf = np.array(iImf)
         imfs = np.append(imfs,iImf,axis=0)                           #store IMF in list
         count = count + 1
         signal = signal - iImf                                       #subtract IMF from signal
         pSig = np.linalg.norm(signal)**2
+        osc = len(discreteMax) + len(discreteMin)
         if pSig > 0:
-            #print(pSig/pX)                          #if the signal isn't a residual, calculate the power of the residual
+            #print(10*np.log10(pX/pSig))                         #if the signal isn't a residual, calculate the power of the residual
             iniResidual = 10*np.log10(pX/pSig)
         else:
-            iniResidual = math.inf      
+            iniResidual = math.inf
     if pSig/pX > 0:                                           #or some really small positive number (might change later)
         residual = signal
         imfs = np.append(imfs, np.array(residual),axis=0)
         count = count + 1
-
     imfs = np.array(imfs)                                           #array with imfs and residual in last row
-    imfs = imfs.reshape(count,int(len(x)))
-    
-    recon = np.zeros((siglen,))                                     #create empty reconstruction matrix
-    for i in range(len(imfs)):
-        j = i + 1
-        recon = recon + imfs[i]                                     #add the IMFs and residual together and plot
-        #plt.subplot(len(imfs)+1,1,j)
-        #plt.plot(t,imfs[i])
-        #plt.xlabel('time')
-        #plt.ylabel('Amplitude')
-        #plt.title('IMF %s' %j)
-
-    #plt.subplot(len(imfs)+1,1,j+1)
-    #plt.plot(t,recon)
-    #plt.title('Sin(t/2) + t/10')
+    imfs = imfs.reshape(count-1,int(len(x)))
+    extrema.append(discreteMax)
+    #plt.figure()
+    #plt.plot(t,residual)
     #plt.xlabel('time')
     #plt.ylabel('Amplitude')
-    #plt.tight_layout()
+    #plt.title('Residual')
     #plt.show()
-    #pRecon = np.linalg.norm(recon)**2
-    #print(pX-pRecon)
+    recon = np.zeros((siglen,))                                     #create empty reconstruction matrix
+    for i in range(len(imfs)):
+        recon = recon + imfs[i]                                     #add the IMFs and residual together and plot
 
-    return imfs
+    pRecon = np.linalg.norm(recon)**2
+    print(10*np.log10(pRecon/pX))
+    #print(extrema)
+    return extrema
    
 
 def discreteMinMax(x):
@@ -260,15 +265,21 @@ def extrap(x,discreteMin,discreteMax):
 if __name__ == "__main__":
     from lab_analysis.libs.noise import simulate
     import numpy as np
-    x = np.linspace(0,100,101)
-    y = np.sin(x/2)+.1*x
+
+    Fs = 44100
+    f = 440
+    sample = 44100
+    duration = 1
+    x = np.arange(Fs * duration)
+    y = (np.sin(2 * np.pi * np.arange(Fs * duration) * f / Fs))
+    newy = .1*x
     alpha = 1.0
     white_noise_sigma = 1.0
-    length_ts = 50
+    length_ts = 100
     f_knee = 2.0
     sample_rate = 100.0
     noise = simulate.simulate_noise(alpha, white_noise_sigma,length_ts, f_knee, sample_rate)
-    vec = splineEMD(noise,40,30,1)
+    vec = splineEMD(noise,30,10,1)
     
 
 
