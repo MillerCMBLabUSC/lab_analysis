@@ -7,7 +7,7 @@ alpha = 1.0
 white_noise_sigma = 1.0
 length_ts = 1000000
 f_knee = 2.0
-sample_rate = 44100
+sample_rate = 100
 
 for i in range(20):
 	j = i + 1
