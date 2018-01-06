@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 x       - input signal (vector of real numbers)
@@ -33,7 +32,8 @@ def splineEMD(x,resolution,inputResidual,step):
     iniResidual = 0                                                #signal has not been sifted and so energies are equal
     count = 1
     osc = math.inf
-    extrema = []
+    textrema = []
+    yextrema = []
     #plt.figure()
     #plt.plot(t,signal)
     #plt.xlabel('time')
@@ -70,7 +70,8 @@ def splineEMD(x,resolution,inputResidual,step):
             topenv = CubicSpline(parabolicMax[:,0],parabolicMax[:,1])
             botenv = CubicSpline(parabolicMin[:,0],parabolicMin[:,1])
             mean = (topenv(t) + botenv(t))/2
-        extrema.append(discreteMax)
+        textrema.append(discreteMax[:,0])
+        yextrema.append(discreteMax[:,1])
         #plt.figure()
         #plt.plot(t,botenv(t),t,-botenv(t),t,iImf,t,mean)
         #plt.scatter(parabolicMin[:,0],parabolicMin[:,1])
@@ -96,7 +97,7 @@ def splineEMD(x,resolution,inputResidual,step):
         count = count + 1
     imfs = np.array(imfs)                                           #array with imfs and residual in last row
     imfs = imfs.reshape(count-1,int(len(x)))
-    extrema.append(discreteMax)
+    #extrema.append(discreteMax)
     #plt.figure()
     #plt.plot(t,residual)
     #plt.xlabel('time')
@@ -108,9 +109,8 @@ def splineEMD(x,resolution,inputResidual,step):
         recon = recon + imfs[i]                                     #add the IMFs and residual together and plot
 
     pRecon = np.linalg.norm(recon)**2
-    print(10*np.log10(pRecon/pX))
-    #print(extrema)
-    return extrema
+    #print(10*np.log10(pRecon/pX))
+    return textrema,yextrema
    
 
 def discreteMinMax(x):
@@ -265,15 +265,6 @@ def extrap(x,discreteMin,discreteMax):
 
 if __name__ == "__main__":
     from lab_analysis.libs.noise import simulate
-    import numpy as np
-
-    Fs = 44100
-    f = 440
-    sample = 44100
-    duration = 1
-    x = np.arange(Fs * duration)
-    y = (np.sin(2 * np.pi * np.arange(Fs * duration) * f / Fs))
-    newy = .1*x
     alpha = 1.0
     white_noise_sigma = 1.0
     length_ts = 100
