@@ -42,6 +42,9 @@ for file in *.bin
 	rm $file
 done
 
+#make a histogram
+$(python3 histo.py)
+
 #clear the text file
 
-#> arrayfile.txt
+> arrayfile.txt

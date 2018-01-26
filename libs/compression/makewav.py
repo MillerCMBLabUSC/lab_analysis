@@ -8,7 +8,7 @@ import sys
 
 alpha = 1.0
 white_noise_sigma = 1.0
-length_ts = 600
+length_ts = 60
 f_knee = 2.0
 sample_rate = 100
 realizations = int(sys.argv[1])
@@ -16,7 +16,8 @@ intnoise = []
 for i in range(realizations):
 	intnoise=[]
 	j = i + 1
-	uncorrelate  = correlatenoise.Correlate()
+	one_over_f  = simulate.simulate_noise(alpha,white_noise_sigma, length_ts,f_knee, sample_rate)
+	uncorrelate  = correlatenoise.Correlate(len(one_over_f))
 	uncorrelate.fcorrelate(30000)
 	noise = uncorrelate.copies
 	if np.max(noise) >= abs(np.min(noise)):
