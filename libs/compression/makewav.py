@@ -1,21 +1,36 @@
 #!/usr/bin/env python3
+
 import numpy as np
 from lab_analysis.libs.noise import simulate
+from lab_analysis.libs.noise import correlatenoise
 import sys
 
 
 alpha = 1.0
 white_noise_sigma = 1.0
-length_ts = 100000
+length_ts = 600
 f_knee = 2.0
 sample_rate = 100
 realizations = int(sys.argv[1])
-
+intnoise = []
 for i in range(realizations):
+	intnoise=[]
 	j = i + 1
-	noise = simulate.simulate_noise(alpha, white_noise_sigma,length_ts, f_knee, sample_rate)
-	scalednoise = np.int16(noise/np.max(noise) * 32767)
-	np.save('noise%s.npy' %j ,scalednoise)
+	uncorrelate  = correlatenoise.Correlate()
+	uncorrelate.fcorrelate(30000)
+	noise = uncorrelate.copies
+	if np.max(noise) >= abs(np.min(noise)):
+		scalednoise = np.int32(noise/np.max(noise) * ( 2**23) -1)
+	if np.max(noise) <= abs(np.min(noise)):
+		scalednoise = np.int32(noise/np.min(noise) * (2 **23) -1)
+
+	for k  in range(len(scalednoise)):
+		intnoise.append(int(scalednoise[k]))
+
+	with open('noise%s.bin' %j,'wb') as f:
+		for idx in range(len(intnoise)):
+			f.write(intnoise[idx].to_bytes(3,byteorder='little',signed=True))
+
 
 
 
