@@ -1,14 +1,23 @@
 import numpy as np
-
+import ephem
+import datetime
 
 class SimulatorSettings:
 	def __init__(self):
+		#telescope location parameters
+		telescope = ephem.Observer()
+		telescope.lon = -67.7875   #degrees
+		telescope.lat = -22.9586   #degrees
+		telescope.altitude = 5190  #meters
+		obs_date = ephem.Date('2018')
+		telescope.date = obs_date.datetime()
+		
 		#scan and simulation parameters
-		self.ra_0 = 4.91
-		self.dec_0 = 52.26 
-		self.ra_rng = 5 
-		self.dec_rng = 5 
-		self.dec_stp = 0.1 
+		self.az_0 = 0
+		self.el_0 = 90 
+		self.az_rng = 1 
+		self.el_rng = 1 
+		self.el_stp = 0.02 
 		self.dt = 0.1 #data time interval 
 		self.t_end = 3600.0 #seconds
 		

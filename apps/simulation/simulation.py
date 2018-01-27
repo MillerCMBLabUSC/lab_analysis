@@ -9,8 +9,9 @@ import scipy
 from scipy import signal
 from lab_analysis.libs.geometry import coordinates
 from lab_analysis.apps.simulation import default_settings
-from lab_analysis.apps.simulation import pointing
+from lab_analysis.apps.simulation import pointing_test
 from lab_analysis.libs.units.angles import *
+from lab_analysis.libs.noise import simulate
 
 
 #class Simulator(lab_app.App):
@@ -20,7 +21,7 @@ class Simulator(object):
 		self.settings = default_settings.SimulatorSettings()
 		times = np.linspace(0, self.settings.t_end, self.settings.t_end/self.settings.dt)
 		maps = healpy.read_map(self.load_map('sevem_1024_full'), field = (0, 1, 2))
-		create_pointing = pointing.CreatePointing()
+		create_pointing = pointing_test.CreatePointing()
 		boresight_pointing = create_pointing.make_boresight_pointing()
 		for bolo in range(0, self.settings.num_bolos):
 			self.run_one_bolo(bolo, boresight_pointing, maps, times)
@@ -38,8 +39,8 @@ class Simulator(object):
 		hwp_angle = np.sin(2*pl.pi * self.settings.f_hwp * times)
 		data = 1/2.* (bolo_i + bolo_p * pl.cos(4*hwp_angle - 2*bolo_alpha))
 		data = self.add_hwpss(times, data, hwp_angle)
-		data = self.add_nonlinearity(data)
-		data = self.add_noise(data)
+		#data = self.add_nonlinearity(data)
+		#data = self.add_noise(data)
 		self.plot_data(times, data)
 		#self.make_map(data, detector_pointing, lat, lon)
 	
@@ -73,10 +74,20 @@ class Simulator(object):
 		compressed_signal = signal - 0.04*signal**2 + 0.001*signal**3
 		return compressed_signal + signal_min
 	
-	def add_noise(self, signal):
-		sigma = self.settings.NET / pl.sqrt(self.settings.dt)
-		noise = scipy.stats.norm.rvs(scale = sigma, size = signal.size)
-		return signal + noise
+	def add_noise(self, signal, alpha = 1.0, f_knee = 0.1, add_white_noise = False, add_1f_noise = False):
+		#still need to determine what "frequencies" parameter is!!
+		if add_white_noise:
+			white_noise_sigma = self.settings.NET / pl.sqrt(self.settings.dt)
+			white_noise = simulate.simulate_noise(alpha, white_noise_sigma, signal.size, f_knee, self.settings.dt)
+		else:
+			white_noise = np.zeros
+		
+		if add_1f_noise:
+			1f_noise = one_over_f(frequencies, alpha, f_knee)
+		else:
+			1f_noise = np.zeros
+		
+		return signal + white_noise + 1f_noise
 	
 	def add_hwpss(self, times, signal, hwp_angle):
 		#approximation we are using for now: A1 = 50mK, A2 = 100, A4 = 200. All other coeffs = 0.
