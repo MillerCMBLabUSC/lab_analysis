@@ -14,11 +14,11 @@ sample_rate = 100.0
 
 class Correlate:
 
-	def __init__(self,correlations):
+	def __init__(self,correlations,original):
 		#create noise sample that is a union of all to be correlated samples
-		self.noise = (simulate.simulate_noise(alpha,white_noise_sigma,self.orig + correlations + 1,f_knee,sample_rate))
+		self.noise = (simulate.simulate_noise(alpha,white_noise_sigma,original + correlations + 1,f_knee,sample_rate))
 		self.correlations = correlations
-		self.orig = len(self.correlations) - correlations - 1
+		self.orig = original
 		self.copies = []
 		self.correlation = None
 
@@ -30,7 +30,7 @@ class Correlate:
 
 		#create a cover of extended noise sample
 		for i in range(0,self.correlations):
-			self.copies.append(sample[i:i+self.orig])
+			self.copies.append(self.noise[i:i+self.orig])
 
 		#flatten the list of lists
 		self.copies = [item for sublist in self.copies for item in sublist]
@@ -44,7 +44,7 @@ class Correlate:
 
 		#create a cover of extended the extended noise sample
 		for i in range(0,self.correlations):
-			self.copies.append(self.copies[0][-(i+self.orig):-i])
+			self.copies.append(self.noise[-(i+self.orig):-i])
 
 		#flatten the lists of lists
 		self.copies = [item for sublist in self.copies for item in sublist]
