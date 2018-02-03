@@ -8,7 +8,7 @@ class SimulatorSettings:
 		telescope = ephem.Observer()
 		telescope.lon = -67.7875   #degrees
 		telescope.lat = -22.9586   #degrees
-		telescope.altitude = 5190  #meters
+		telescope.elevation = 5190  #meters
 		obs_date = ephem.Date('2018')
 		telescope.date = obs_date.datetime()
 		

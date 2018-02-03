@@ -14,6 +14,9 @@ def generate_datetimes():
 		datetime_array = np.append(datetime_array, (datetime_start + datetime.timedelta(seconds=i)))
 	
 	#print datetime_array
-	return datetime_array
+	return np.delete(datetime_array, 0)
 
-
+if __name__ == "__main__":
+	arr = generate_datetimes()
+	print arr	
+	
