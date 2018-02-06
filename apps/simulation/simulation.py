@@ -11,7 +11,7 @@ from lab_analysis.libs.geometry import coordinates
 from lab_analysis.apps.simulation import default_settings
 from lab_analysis.apps.simulation import pointing_test
 from lab_analysis.libs.units.angles import *
-from lab_analysis.libs.noise import simulate
+#from lab_analysis.libs.noise import simulate
 
 
 #class Simulator(lab_app.App):
@@ -73,7 +73,8 @@ class Simulator(object):
 		signal -= signal_min
 		compressed_signal = signal - 0.04*signal**2 + 0.001*signal**3
 		return compressed_signal + signal_min
-	
+
+	'''	
 	def add_noise(self, signal, alpha = 1.0, f_knee = 0.1, add_white_noise = False, add_1f_noise = False):
 		#still need to determine what "frequencies" parameter is!!
 		if add_white_noise:
@@ -88,7 +89,8 @@ class Simulator(object):
 			1f_noise = np.zeros
 		
 		return signal + white_noise + 1f_noise
-	
+	'''	
+
 	def add_hwpss(self, times, signal, hwp_angle):
 		#approximation we are using for now: A1 = 50mK, A2 = 100, A4 = 200. All other coeffs = 0.
 		hwpss = 0.05*pl.cos(hwp_angle) + 0.1*pl.cos(2*hwp_angle) + 0.2*pl.cos(4*hwp_angle)
