@@ -8,7 +8,7 @@ import sys
 
 alpha = 1.0
 white_noise_sigma = 1.0
-length_ts = 60
+length_ts = 10000
 f_knee = 2.0
 sample_rate = 100
 realizations = int(sys.argv[1])
@@ -16,10 +16,10 @@ intnoise = []
 for i in range(realizations):
 	intnoise=[]
 	j = i + 1
-	one_over_f  = simulate.simulate_noise(alpha,white_noise_sigma, length_ts,f_knee, sample_rate)
-	uncorrelate  = correlatenoise.Correlate(30000,len(one_over_f))
-	uncorrelate.fcorrelate()
-	noise = uncorrelate.copies
+	noise  = simulate.simulate_noise(alpha,white_noise_sigma, length_ts,f_knee, sample_rate)
+#	uncorrelate  = correlatenoise.Correlate(30000,len(one_over_f))
+#	uncorrelate.fcorrelate()
+#	noise = uncorrelate.copies
 	if np.max(noise) >= abs(np.min(noise)):
 		scalednoise = np.int32(noise/np.max(noise) * ( 2**23) -1)
 	if np.max(noise) <= abs(np.min(noise)):
@@ -30,7 +30,7 @@ for i in range(realizations):
 
 	with open('noise%s.bin' %j,'wb') as f:
 		for idx in range(len(intnoise)):
-			f.write(intnoise[idx].to_bytes(3,byteorder='little',signed=True))
+			f.write(intnoise[idx].to_bytes(4,byteorder='little',signed=True))
 
 
 
