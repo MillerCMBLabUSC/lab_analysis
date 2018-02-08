@@ -8,7 +8,7 @@ import sys
 
 alpha = 1.0
 white_noise_sigma = 1.0
-length_ts = 10000
+length_ts = 1000
 f_knee = 2.0
 sample_rate = 100
 realizations = int(sys.argv[1])
@@ -30,7 +30,11 @@ for i in range(realizations):
 
 	with open('noise%s.bin' %j,'wb') as f:
 		for idx in range(len(intnoise)):
-			f.write(intnoise[idx].to_bytes(4,byteorder='little',signed=True))
+			f.write(intnoise[idx].to_bytes(3,byteorder='little',signed=True))
+
+	with open('noise%s.txt' %j,'w') as f:
+		for idx in intnoise:
+			f.write("%d\n" %idx)
 
 
 
