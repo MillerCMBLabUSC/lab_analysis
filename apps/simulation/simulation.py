@@ -25,7 +25,6 @@ class Simulator(object):
 		boresight_pointing = create_pointing.make_boresight_pointing()
 		for bolo in range(0, self.settings.num_bolos):
 			self.run_one_bolo(bolo, boresight_pointing, maps, times)
-			
 		plt.show()
 	
 	def run_one_bolo(self, bolo, boresight_pointing, maps, times):
@@ -43,7 +42,7 @@ class Simulator(object):
 		#data = self.add_noise(data)
 		self.plot_data(times, data)
 		#self.make_map(data, detector_pointing, lat, lon)
-	
+		
 	
 	def rotate_boresight_pointing(self, boresight_pointing, bolo_number):
 		#this is a basic rotation function. the three bolos are arranged in a triangle with base 0.005 (~50m) and height 0.005 (~50m)
@@ -73,7 +72,7 @@ class Simulator(object):
 		signal -= signal_min
 		compressed_signal = signal - 0.04*signal**2 + 0.001*signal**3
 		return compressed_signal + signal_min
-
+	
 	'''	
 	def add_noise(self, signal, alpha = 1.0, f_knee = 0.1, add_white_noise = False, add_1f_noise = False):
 		#still need to determine what "frequencies" parameter is!!
@@ -90,7 +89,7 @@ class Simulator(object):
 		
 		return signal + white_noise + 1f_noise
 	'''	
-
+	
 	def add_hwpss(self, times, signal, hwp_angle):
 		#approximation we are using for now: A1 = 50mK, A2 = 100, A4 = 200. All other coeffs = 0.
 		hwpss = 0.05*pl.cos(hwp_angle) + 0.1*pl.cos(2*hwp_angle) + 0.2*pl.cos(4*hwp_angle)
