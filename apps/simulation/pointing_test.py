@@ -18,10 +18,12 @@ class CreatePointing(default_settings.SimulatorSettings):
 		#defining a few useful values
 		self.n_stp = int(self.el_rng/self.el_stp) + 1 #number of steps
 		l = self.az_rng*(self.n_stp) + self.el_rng*2 #total length of path of scan
-		self.num_data_points = self.t_end/self.dt
-		self.dt_obs = float(l)/self.num_data_points 
+		self.num_data_points = float(l)/self.dt
+		self.dt_obs = self.dt
+		#self.num_data_points = self.t_end/self.dt
+		#self.dt_obs = float(l)/self.num_data_points 
 		self.datetimes = datetimes.generate_datetimes()
-		print self.dt_obs
+		#print self.dt_obs
 		#print self.num_data_points
 		self.az_min = self.az_0 - (self.az_rng/2) #min az
 		self.az_max = self.az_0 + (self.az_rng/2) #max az
@@ -73,12 +75,12 @@ class CreatePointing(default_settings.SimulatorSettings):
 	
 	
 	def transform_coords(self):
-		datetime_index = np.floor(self.ra_data.size * dt_obs)
+		datetime_index = np.floor(self.ra_data.size * self.dt_obs)
 		self.telescope.date = self.datetimes[int(datetime_index)]
 		ra_min, dec_min = coordinates.hor_to_eq(self.az_min, self.el_min, float(self.telescope.lat), self.telescope.sidereal_time())
 		ra_max, dec_max = coordinates.hor_to_eq(self.az_max, self.el_max, float(self.telescope.lat), self.telescope.sidereal_time())
-		ra, dec_step = coordinates.hor_to_eq(self.az_min, self.el_min + self.el_stp, float(self.telescope.lat), self.telescope.sidereal_time())
-		return ra_min, dec_min, ra_max, dec_max, dec_step
+		ra, dec_step = coordinates.hor_to_eq(self.az_min, self.el_stp, float(self.telescope.lat), self.telescope.sidereal_time())
+		return ra_min, dec_min, ra_max, dec_max, abs(dec_step)
 
 
 if __name__ == "__main__":

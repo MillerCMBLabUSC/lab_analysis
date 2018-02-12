@@ -18,7 +18,7 @@ class SimulatorSettings:
 		self.az_rng = 1 
 		self.el_rng = 1 
 		self.el_stp = 0.02 
-		self.dt = 0.1 #data time interval 
+		self.dt = 0.01 #data time interval 
 		self.t_end = 3600.0 #seconds
 		
 		#NET and noise settings
