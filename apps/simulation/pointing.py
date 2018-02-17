@@ -79,13 +79,14 @@ class CreatePointing(default_settings.SimulatorSettings):
 		self.telescope.date = self.datetimes[int(datetime_index)]
 		ra_min, dec_min = coordinates.hor_to_eq(self.az_min, self.el_min, float(self.telescope.lat), self.telescope.sidereal_time())
 		ra_max, dec_max = coordinates.hor_to_eq(self.az_max, self.el_max, float(self.telescope.lat), self.telescope.sidereal_time())
-		ra, dec_step = coordinates.hor_to_eq(self.az_min, self.el_stp, float(self.telescope.lat), self.telescope.sidereal_time())
+		ra, dec_next = coordinates.hor_to_eq(self.az_min, self.el_min + self.el_stp, float(self.telescope.lat), self.telescope.sidereal_time())
+		dec_step = dec_next - dec_min
 		return ra_min, dec_min, ra_max, dec_max, abs(dec_step)
 
 
 if __name__ == "__main__":
 	pointing = CreatePointing()
 	ra, dec = pointing.make_boresight_pointing()
-	plt.plot(ra, dec, markersize = 1.5)
+	plt.plot(ra, dec, '.', markersize = 1.5)
 	plt.show()
 
