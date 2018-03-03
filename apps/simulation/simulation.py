@@ -9,7 +9,7 @@ import scipy
 from scipy import signal
 from lab_analysis.libs.geometry import coordinates
 from lab_analysis.apps.simulation import default_settings
-from lab_analysis.apps.simulation import pointing_test
+from lab_analysis.apps.simulation import new_pointing
 from lab_analysis.libs.units.angles import *
 #from lab_analysis.libs.noise import simulate
 
@@ -19,10 +19,10 @@ class Simulator(object):
 		
 	def run(self):
 		self.settings = default_settings.SimulatorSettings()
-		times = np.linspace(0, self.settings.t_end, self.settings.t_end/self.settings.dt)
-		maps = healpy.read_map(self.load_map('sevem_1024_full'), field = (0, 1, 2))
-		create_pointing = pointing_test.CreatePointing()
+		create_pointing = new_pointing.CreatePointing()
 		boresight_pointing = create_pointing.make_boresight_pointing()
+		times = np.linspace(0., self.settings.t_end, num = int(create_pointing.num_data_points))
+		maps = healpy.read_map(self.load_map('sevem_1024_full'), field = (0, 1, 2))
 		for bolo in range(0, self.settings.num_bolos):
 			self.run_one_bolo(bolo, boresight_pointing, maps, times)
 		plt.show()
@@ -38,13 +38,14 @@ class Simulator(object):
 		hwp_angle = np.sin(2*pl.pi * self.settings.f_hwp * times)
 		data = 1/2.* (bolo_i + bolo_p * pl.cos(4*hwp_angle - 2*bolo_alpha))
 		data = self.add_hwpss(times, data, hwp_angle)
-		#data = self.add_nonlinearity(data)
+		data = self.add_nonlinearity(data)
 		#data = self.add_noise(data)
 		self.plot_data(times, data)
 		#self.make_map(data, detector_pointing, lat, lon)
 		
 	
 	def rotate_boresight_pointing(self, boresight_pointing, bolo_number):
+		'''
 		#this is a basic rotation function. the three bolos are arranged in a triangle with base 0.005 (~50m) and height 0.005 (~50m)
 		#if a fourth bolo is added, it will be at the center of the triangle (the boresight pointing)
 		#a little clunky but I can turn this into a dictionary later with diff. adjustments depending on the number/arrangement of bolos
@@ -58,6 +59,7 @@ class Simulator(object):
 			boresight_pointing[0] -= 0.0025
 			boresight_pointing[1] -= 0.0025
 		boresight_pointing = tuple(boresight_pointing)
+		'''
 		return boresight_pointing
 	
 	def load_map(self, map_name):

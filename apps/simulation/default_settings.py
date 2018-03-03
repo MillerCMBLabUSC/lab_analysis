@@ -13,10 +13,10 @@ class SimulatorSettings:
 		self.telescope.date = self.obs_date.datetime()
 		
 		#scan and simulation parameters
-		self.az_0 = 0
-		self.el_0 = 90 
-		self.az_rng = 1 
-		self.el_rng = 1 
+		self.az_0 = 0.
+		self.el_0 = 90. 
+		self.az_rng = 1. 
+		self.el_rng = 1. 
 		self.el_stp = 0.02 
 		self.dt = 0.01 #data time interval 
 		self.t_end = 3600.0 #seconds
