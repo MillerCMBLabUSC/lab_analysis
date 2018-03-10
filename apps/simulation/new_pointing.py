@@ -19,6 +19,7 @@ class CreatePointing(default_settings.SimulatorSettings):
 		self.n_stp = int(self.el_rng/self.el_stp) + 1 #number of steps
 		l = self.az_rng*(self.n_stp) + self.el_rng*2 #total length of path of scan
 		self.num_data_points = float(l)/self.dt  #defining number of data points
+		print self.num_data_points
 		self.datetimes = datetimes.generate_datetimes() #generating array of datetimes to use for conversion
 		#establishing boundary of scan
 		self.az_min = self.az_0 - (self.az_rng/2) #min az
