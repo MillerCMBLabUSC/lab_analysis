@@ -27,6 +27,7 @@ class Simulator(object):
 		boresight_pointing = (lats, lons)
 		#boresight_pointing = self.create_pointing.make_boresight_pointing()
 		#times = np.linspace(0., self.settings.t_end, num = int(self.create_pointing.num_data_points))
+		self.write_coords_to_file(True, times, boresight_pointing)
 		self.map_name = 'sevem_1024_full'
 		maps = healpy.read_map(self.load_map(self.map_name), field = (0, 1, 2))
 		for bolo in range(0, self.settings.num_bolos):
@@ -37,6 +38,7 @@ class Simulator(object):
 		detector_pointing = self.rotate_boresight_pointing(boresight_pointing, bolo)
 		lat, lon = coordinates.eq_to_gal(detector_pointing[0], detector_pointing[1])
 		bolo_i = healpy.get_interp_val(maps[0], pl.pi/2.0-lat, lon)
+		bolo_i_test = healpy.get_interp_val(maps[0], lat, lon)
 		bolo_q = healpy.get_interp_val(maps[1], pl.pi/2.0-lat, lon)
 		bolo_u = healpy.get_interp_val(maps[2], pl.pi/2.0-lat, lon)
 		bolo_alpha = 1/2. * pl.arctan2(bolo_u, bolo_q)
@@ -47,7 +49,7 @@ class Simulator(object):
 		#data = self.add_hwpss(times, data, self.hwp_rotation())
 		#data = self.add_nonlinearity(data)
 		#data = self.add_noise(data)
-		self.plot_data(times, bolo_i)
+		self.plot_data(times, bolo_i_test)
 		#self.make_map(data, detector_pointing, lat, lon)
 		
 	
@@ -115,6 +117,7 @@ class Simulator(object):
 		plt.axhline(linewidth = 0.5, color = 'k')
 		plt.plot(times, data_to_plot, markersize = 1.5)
 		#plt.plot(times, data_to_plot,'.', markersize = 1.5)
+		self.print_local_min_max(data_to_plot, 0.00000001, x = times)
 		plt.xlabel('Time (s)')
 		plt.ylabel('K_cmb')
 		plt.title(self.map_name)
@@ -127,7 +130,81 @@ class Simulator(object):
 		hpmap = np.zeros(npix, dtype = np.float)
 		hpmap[indices] += data[indices]
 		healpy.mollview(hpmap)
+		
+	def write_coords_to_file(self, proceed, times, coords):
+		if not proceed:
+			return
+		lats = list(coords[0])
+		lons = list(coords[1])
+		with open('/home/rashmi/maps/coords.txt', 'w') as f:
+			f.write('times\tlat\tlon\n')
+			for i in np.arange(len(times)):
+				f.write('\n{}\t{:.3e}\t{:.3e}'.format(times[i], lats[i], lons[i]))
+	
+	
+	def print_local_min_max(self, v, delta, x = None):
+		import sys
+		np.set_printoptions(precision = 4)
+		#maxtab = []
+    		#mintab = []
+		mxpos_tab = []
+		mnpos_tab = []
+		mx_tab = []
+		mn_tab = []
+		if x is None:
+			x = np.arange(len(v))
+			v = np.asarray(v)
+		
+		if len(v) != len(x):
+			sys.exit('Input vectors v and x must have same length')
+		
+		if not np.isscalar(delta):
+			sys.exit('Input argument delta must be a scalar')
+		
+		if delta <= 0:
+			sys.exit('Input argument delta must be positive')
+		
+		mn, mx = np.Inf, -np.Inf
+		mnpos, mxpos = np.NaN, np.NaN
+		
+		lookformax = True
+		
+		for i in np.arange(len(v)):
+			this = v[i]
+			if this > mx:
+				mx = this
+				mxpos = x[i]
+			if this < mn:
+				mn = this
+				mnpos = x[i]
 
+			if lookformax:
+				if this < mx-delta:
+					#maxtab = np.column_stack((mxpos, mx))
+					mxpos_tab = np.append(mxpos_tab, mxpos)
+					mx_tab = np.append(mx_tab, mx)
+					mn = this
+					mnpos = x[i]
+					lookformax = False
+			else:
+				if this > mn+delta:
+					#mintab = np.column_stack((mnpos, mn))
+					mnpos_tab = np.append(mnpos_tab, mnpos)
+					mn_tab = np.append(mn_tab, mn)
+					mx = this
+					mxpos = x[i]
+					lookformax = True
+		
+		#plt.scatter(np.array(maxtab)[:,0], np.array(maxtab)[:,1], color='blue')
+		#plt.scatter(np.array(mintab)[:,0], np.array(mintab)[:,1], color='red')
+		plt.scatter(mxpos_tab, mx_tab, color='blue')
+		plt.scatter(mnpos_tab, mn_tab, color='red')
+		for i in np.arange(len(mx_tab)-1):
+			plt.annotate('({}, {:.3e})'.format(mxpos_tab[i], mx_tab[i]), xy = (mxpos_tab[i], mx_tab[i]), \
+				xytext = (mxpos_tab[i], mx_tab[i] + 0.000005))
+			plt.annotate('({}, {:.3e})'.format(mnpos_tab[i], mn_tab[i]), xy = (mnpos_tab[i], mn_tab[i]), \
+				xytext = (mnpos_tab[i], mn_tab[i] - 0.00001))
+		
 
 if __name__ == "__main__":
 	simulator = Simulator()
