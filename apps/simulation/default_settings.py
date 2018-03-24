@@ -29,4 +29,7 @@ class SimulatorSettings:
 		
 		#HWP and HWPSS settings
 		self.f_hwp = 2 #Hz
-		self.num_bolos = 1 
+		self.num_bolos = 1
+		
+		#operational settings
+		self.conduct_test = False 

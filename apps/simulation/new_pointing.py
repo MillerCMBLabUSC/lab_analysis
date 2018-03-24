@@ -19,7 +19,7 @@ class CreatePointing(default_settings.SimulatorSettings):
 		self.n_stp = int(self.el_rng/self.el_stp) + 1 #number of steps
 		l = self.az_rng*(self.n_stp) + self.el_rng*2 #total length of path of scan
 		self.num_data_points = float(l)/self.dt  #defining number of data points
-		print self.num_data_points
+		#print self.num_data_points
 		self.datetimes = datetimes.generate_datetimes() #generating array of datetimes to use for conversion
 		#establishing boundary of scan
 		self.az_min = self.az_0 - (self.az_rng/2) #min az
@@ -32,9 +32,13 @@ class CreatePointing(default_settings.SimulatorSettings):
 		#first step of scan; initializing data arrays
 		self.ra_data = np.zeros(0)
 		self.dec_data = np.zeros(0)
+		self.az_data = np.zeros(0)
+		self.el_data = np.zeros(0)
 		#starting out at az_min, el_min
 		current_az = self.az_min
 		current_el = self.el_min
+		self.az_data = np.append(self.az_data, current_az)
+		self.el_data = np.append(self.el_data, current_el)
 		current_ra, current_dec = self.transform_coords(current_az, current_el)
 		self.ra_data = np.append(self.ra_data, current_ra)
 		self.dec_data = np.append(self.dec_data, current_dec)
@@ -47,6 +51,8 @@ class CreatePointing(default_settings.SimulatorSettings):
                                         #current_az moves from az_min to az_max while el stays the same
                                         current_az += self.az_rng * self.dt
                                         current_el = self.el_min + j * self.el_stp
+					self.az_data = np.append(self.az_data, current_az)
+					self.el_data = np.append(self.el_data, current_el)
                                         current_ra, current_dec = self.transform_coords(current_az, current_el)
                                         self.ra_data = np.append(self.ra_data, current_ra)
                                         self.dec_data = np.append(self.dec_data, current_dec)
@@ -54,6 +60,8 @@ class CreatePointing(default_settings.SimulatorSettings):
                                 elif current_az >= self.az_max:
                                         #once current_az reaches az_max, it stays there while el increases
                                         current_el += self.el_stp * self.dt
+					self.az_data = np.append(self.az_data, current_az)
+					self.el_data = np.append(self.el_data, current_el)
                                         current_ra, current_dec = self.transform_coords(current_az, current_el)
                                         self.ra_data = np.append(self.ra_data, current_ra)
                                         self.dec_data = np.append(self.dec_data, current_dec)
@@ -68,6 +76,8 @@ class CreatePointing(default_settings.SimulatorSettings):
 					#current_az moves from az_max to az_min while el stays the same
 					current_az -= self.az_rng * self.dt
 					current_el = self.el_min + j * self.el_stp
+					self.az_data = np.append(self.az_data, current_az)
+					self.el_data = np.append(self.el_data, current_el)
 					current_ra, current_dec = self.transform_coords(current_az, current_el)
 					self.ra_data = np.append(self.ra_data, current_ra)
 					self.dec_data = np.append(self.dec_data, current_dec)
@@ -75,6 +85,8 @@ class CreatePointing(default_settings.SimulatorSettings):
 				elif current_az <= self.az_min:
 					#once current_az reaches az_min, it stays there while el increases
 					current_el += self.el_stp * self.dt
+					self.az_data = np.append(self.az_data, current_az)
+					self.el_data = np.append(self.el_data, current_el)
 					current_ra, current_dec = self.transform_coords(current_az, current_el)
 					self.ra_data = np.append(self.ra_data, current_ra)
 					self.dec_data = np.append(self.dec_data, current_dec)

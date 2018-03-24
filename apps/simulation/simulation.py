@@ -22,12 +22,16 @@ class Simulator(object):
 		self.create_pointing = new_pointing.CreatePointing()
 		self.num_data_pts = 2650
 		times = np.linspace(0., self.settings.t_end, num = self.num_data_pts)
-		lats = from_degrees(np.arange(0, times.size)*4.0/times.size-2.0)
-		lons = np.zeros(times.size)
-		boresight_pointing = (lats, lons)
-		#boresight_pointing = self.create_pointing.make_boresight_pointing()
-		#times = np.linspace(0., self.settings.t_end, num = int(self.create_pointing.num_data_points))
-		self.write_coords_to_file(True, times, boresight_pointing)
+		if self.settings.conduct_test:
+		#if I want to conduct a test and scan the galactic center, I would generate a test
+		#pointing, write coordinates and times to file, and annotate the graph with relevant
+		#values. Otherwise, I would proceed as usual.
+			boresight_pointing = self.use_test_pointing(times)
+			self.write_coords_to_file(times, boresight_pointing)
+		if not self.settings.conduct_test:
+		#if I'm not conducting a test, I am proceeding with the usual scan strategy
+			boresight_pointing = self.create_pointing.make_boresight_pointing()
+			times = np.linspace(0., self.settings.t_end, num = int(self.create_pointing.num_data_points))
 		self.map_name = 'sevem_1024_full'
 		maps = healpy.read_map(self.load_map(self.map_name), field = (0, 1, 2))
 		for bolo in range(0, self.settings.num_bolos):
@@ -117,7 +121,8 @@ class Simulator(object):
 		plt.axhline(linewidth = 0.5, color = 'k')
 		plt.plot(times, data_to_plot, markersize = 1.5)
 		#plt.plot(times, data_to_plot,'.', markersize = 1.5)
-		self.print_local_min_max(data_to_plot, 0.00000001, x = times)
+		if self.settings.conduct_test:
+			self.print_local_min_max(data_to_plot, 0.00000001, x = times)
 		plt.xlabel('Time (s)')
 		plt.ylabel('K_cmb')
 		plt.title(self.map_name)
@@ -131,9 +136,9 @@ class Simulator(object):
 		hpmap[indices] += data[indices]
 		healpy.mollview(hpmap)
 		
-	def write_coords_to_file(self, proceed, times, coords):
-		if not proceed:
-			return
+	def write_coords_to_file(self, times, coords):
+	#this is only relevant if I am conducting a test and want to make a list of times and coordinates
+	#so I can compare to the Healpy map values via mollzoom
 		lats = list(coords[0])
 		lons = list(coords[1])
 		with open('/home/rashmi/maps/coords.txt', 'w') as f:
@@ -141,8 +146,17 @@ class Simulator(object):
 			for i in np.arange(len(times)):
 				f.write('\n{}\t{:.3e}\t{:.3e}'.format(times[i], lats[i], lons[i]))
 	
+	def use_test_pointing(self, times):
+	#this is only relevant if I am conducting a test and only want to scan the galactic center
+	#in order to compare to the Healpy map values via mollzoom
+		lats = from_degrees(np.arange(0, times.size)*4.0/times.size-2.0)
+		lons = np.zeros(times.size)
+		test_pointing = lats, lons
+		return test_pointing
 	
 	def print_local_min_max(self, v, delta, x = None):
+	#this is only relevant if I am conducting a test and want to print the local minima and 
+	#maxima on the chart to compare to the Healpy map values via mollzoom
 		import sys
 		np.set_printoptions(precision = 4)
 		#maxtab = []
@@ -200,9 +214,9 @@ class Simulator(object):
 		plt.scatter(mxpos_tab, mx_tab, color='blue')
 		plt.scatter(mnpos_tab, mn_tab, color='red')
 		for i in np.arange(len(mx_tab)-1):
-			plt.annotate('({}, {:.3e})'.format(mxpos_tab[i], mx_tab[i]), xy = (mxpos_tab[i], mx_tab[i]), \
+			plt.annotate('({:.3f}, {:.3e})'.format(mxpos_tab[i], mx_tab[i]), xy = (mxpos_tab[i], mx_tab[i]), \
 				xytext = (mxpos_tab[i], mx_tab[i] + 0.000005))
-			plt.annotate('({}, {:.3e})'.format(mnpos_tab[i], mn_tab[i]), xy = (mnpos_tab[i], mn_tab[i]), \
+			plt.annotate('({:.3f}, {:.3e})'.format(mnpos_tab[i], mn_tab[i]), xy = (mnpos_tab[i], mn_tab[i]), \
 				xytext = (mnpos_tab[i], mn_tab[i] - 0.00001))
 		
 
