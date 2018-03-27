@@ -10,6 +10,7 @@ from scipy import signal
 from lab_analysis.libs.geometry import coordinates
 from lab_analysis.apps.simulation import default_settings
 from lab_analysis.apps.simulation import new_pointing
+from lab_analysis.apps.simulation import test_pointing
 from lab_analysis.libs.units.angles import *
 #from lab_analysis.libs.noise import simulate
 
@@ -22,21 +23,24 @@ class Simulator(object):
 		self.create_pointing = new_pointing.CreatePointing()
 		self.num_data_pts = 2650
 		times = np.linspace(0., self.settings.t_end, num = self.num_data_pts)
+		
 		if self.settings.conduct_test:
 		#if I want to conduct a test and scan the galactic center, I would generate a test
 		#pointing, write coordinates and times to file, and annotate the graph with relevant
 		#values. Otherwise, I would proceed as usual.
-			boresight_pointing = self.use_test_pointing(times)
-			self.write_coords_to_file(times, boresight_pointing)
+			boresight_pointing = test_pointing.use_test_pointing(times)
+			test_pointing.write_coords_to_file(times, boresight_pointing)
 		if not self.settings.conduct_test:
 		#if I'm not conducting a test, I am proceeding with the usual scan strategy
 			boresight_pointing = self.create_pointing.make_boresight_pointing()
 			times = np.linspace(0., self.settings.t_end, num = int(self.create_pointing.num_data_points))
+		
 		self.map_name = 'sevem_1024_full'
 		maps = healpy.read_map(self.load_map(self.map_name), field = (0, 1, 2))
 		for bolo in range(0, self.settings.num_bolos):
 			self.run_one_bolo(bolo, boresight_pointing, maps, times)
 		plt.show()
+	
 	
 	def run_one_bolo(self, bolo, boresight_pointing, maps, times):
 		detector_pointing = self.rotate_boresight_pointing(boresight_pointing, bolo)
@@ -75,6 +79,7 @@ class Simulator(object):
 		'''
 		return boresight_pointing
 	
+	
 	def load_map(self, map_name):
 		dict = {'commander_1024_full':'/home/rashmi/maps/planck_commander_1024_full_test.fits',
 			'nilc_1024_full':'/home/rashmi/maps/planck_nilc_1024_full_test.fits',
@@ -82,13 +87,14 @@ class Simulator(object):
 			'smica_1024_full':'/home/rashmi/maps/planck_smica_1024_full_test.fits'}
 		return dict.get(map_name)
 	
+	
 	def add_nonlinearity(self, signal, signal_min=-0.2):
 		#found this in the leap code
 		signal -= signal_min
 		compressed_signal = signal - 0.04*signal**2 + 0.001*signal**3
 		return compressed_signal + signal_min
-	'''
-		
+	
+	'''	
 	def add_noise(self, signal, alpha = 1.0, f_knee = 0.1, add_white_noise = False, add_1f_noise = False):
 		#still need to determine what "frequencies" parameter is!!
 		if add_white_noise:
@@ -122,7 +128,7 @@ class Simulator(object):
 		plt.plot(times, data_to_plot, markersize = 1.5)
 		#plt.plot(times, data_to_plot,'.', markersize = 1.5)
 		if self.settings.conduct_test:
-			self.print_local_min_max(data_to_plot, 0.00000001, x = times)
+			test_pointing.print_local_min_max(data_to_plot, 0.00000001, x = times)
 		plt.xlabel('Time (s)')
 		plt.ylabel('K_cmb')
 		plt.title(self.map_name)
@@ -136,89 +142,7 @@ class Simulator(object):
 		hpmap[indices] += data[indices]
 		healpy.mollview(hpmap)
 		
-	def write_coords_to_file(self, times, coords):
-	#this is only relevant if I am conducting a test and want to make a list of times and coordinates
-	#so I can compare to the Healpy map values via mollzoom
-		lats = list(coords[0])
-		lons = list(coords[1])
-		with open('/home/rashmi/maps/coords.txt', 'w') as f:
-			f.write('times\tlat\tlon\n')
-			for i in np.arange(len(times)):
-				f.write('\n{}\t{:.3e}\t{:.3e}'.format(times[i], lats[i], lons[i]))
 	
-	def use_test_pointing(self, times):
-	#this is only relevant if I am conducting a test and only want to scan the galactic center
-	#in order to compare to the Healpy map values via mollzoom
-		lats = from_degrees(np.arange(0, times.size)*4.0/times.size-2.0)
-		lons = np.zeros(times.size)
-		test_pointing = lats, lons
-		return test_pointing
-	
-	def print_local_min_max(self, v, delta, x = None):
-	#this is only relevant if I am conducting a test and want to print the local minima and 
-	#maxima on the chart to compare to the Healpy map values via mollzoom
-		import sys
-		np.set_printoptions(precision = 4)
-		#maxtab = []
-    		#mintab = []
-		mxpos_tab = []
-		mnpos_tab = []
-		mx_tab = []
-		mn_tab = []
-		if x is None:
-			x = np.arange(len(v))
-			v = np.asarray(v)
-		
-		if len(v) != len(x):
-			sys.exit('Input vectors v and x must have same length')
-		
-		if not np.isscalar(delta):
-			sys.exit('Input argument delta must be a scalar')
-		
-		if delta <= 0:
-			sys.exit('Input argument delta must be positive')
-		
-		mn, mx = np.Inf, -np.Inf
-		mnpos, mxpos = np.NaN, np.NaN
-		
-		lookformax = True
-		
-		for i in np.arange(len(v)):
-			this = v[i]
-			if this > mx:
-				mx = this
-				mxpos = x[i]
-			if this < mn:
-				mn = this
-				mnpos = x[i]
-
-			if lookformax:
-				if this < mx-delta:
-					#maxtab = np.column_stack((mxpos, mx))
-					mxpos_tab = np.append(mxpos_tab, mxpos)
-					mx_tab = np.append(mx_tab, mx)
-					mn = this
-					mnpos = x[i]
-					lookformax = False
-			else:
-				if this > mn+delta:
-					#mintab = np.column_stack((mnpos, mn))
-					mnpos_tab = np.append(mnpos_tab, mnpos)
-					mn_tab = np.append(mn_tab, mn)
-					mx = this
-					mxpos = x[i]
-					lookformax = True
-		
-		#plt.scatter(np.array(maxtab)[:,0], np.array(maxtab)[:,1], color='blue')
-		#plt.scatter(np.array(mintab)[:,0], np.array(mintab)[:,1], color='red')
-		plt.scatter(mxpos_tab, mx_tab, color='blue')
-		plt.scatter(mnpos_tab, mn_tab, color='red')
-		for i in np.arange(len(mx_tab)-1):
-			plt.annotate('({:.3f}, {:.3e})'.format(mxpos_tab[i], mx_tab[i]), xy = (mxpos_tab[i], mx_tab[i]), \
-				xytext = (mxpos_tab[i], mx_tab[i] + 0.000005))
-			plt.annotate('({:.3f}, {:.3e})'.format(mnpos_tab[i], mn_tab[i]), xy = (mnpos_tab[i], mn_tab[i]), \
-				xytext = (mnpos_tab[i], mn_tab[i] - 0.00001))
-		
 
 if __name__ == "__main__":
 	simulator = Simulator()

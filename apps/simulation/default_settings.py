@@ -32,4 +32,4 @@ class SimulatorSettings:
 		self.num_bolos = 1
 		
 		#operational settings
-		self.conduct_test = False 
+		self.conduct_test = True 
