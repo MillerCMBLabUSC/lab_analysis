@@ -35,8 +35,7 @@ class Simulator(object):
 			boresight_pointing = self.create_pointing.make_boresight_pointing()
 			times = np.linspace(0., self.settings.t_end, num = int(self.create_pointing.num_data_points))
 		
-		self.map_name = 'sevem_1024_full'
-		maps = healpy.read_map(self.load_map(self.map_name), field = (0, 1, 2))
+		maps = healpy.read_map((self.settings.map_filename), field = (0, 1, 2))
 		for bolo in range(0, self.settings.num_bolos):
 			self.run_one_bolo(bolo, boresight_pointing, maps, times)
 		plt.show()
@@ -46,7 +45,6 @@ class Simulator(object):
 		detector_pointing = self.rotate_boresight_pointing(boresight_pointing, bolo)
 		lat, lon = coordinates.eq_to_gal(detector_pointing[0], detector_pointing[1])
 		bolo_i = healpy.get_interp_val(maps[0], pl.pi/2.0-lat, lon)
-		bolo_i_test = healpy.get_interp_val(maps[0], lat, lon)
 		bolo_q = healpy.get_interp_val(maps[1], pl.pi/2.0-lat, lon)
 		bolo_u = healpy.get_interp_val(maps[2], pl.pi/2.0-lat, lon)
 		bolo_alpha = 1/2. * pl.arctan2(bolo_u, bolo_q)
@@ -54,10 +52,10 @@ class Simulator(object):
 		#hwp_angle = np.sin(2*pl.pi * self.settings.f_hwp * self.hwp_angles)
 		#hwp_angle = 2*pl.pi * self.settings.f_hwp * self.hwp_rotation()
 		data = 1/2.* (bolo_i + bolo_p * pl.cos(4*self.hwp_rotation() - 2*bolo_alpha))
-		#data = self.add_hwpss(times, data, self.hwp_rotation())
+		data = self.add_hwpss(times, data, self.hwp_rotation())
 		#data = self.add_nonlinearity(data)
 		#data = self.add_noise(data)
-		self.plot_data(times, bolo_i_test)
+		self.plot_data(times, data)
 		#self.make_map(data, detector_pointing, lat, lon)
 		
 	
@@ -78,14 +76,6 @@ class Simulator(object):
 		boresight_pointing = tuple(boresight_pointing)
 		'''
 		return boresight_pointing
-	
-	
-	def load_map(self, map_name):
-		dict = {'commander_1024_full':'/home/rashmi/maps/planck_commander_1024_full_test.fits',
-			'nilc_1024_full':'/home/rashmi/maps/planck_nilc_1024_full_test.fits',
-			'sevem_1024_full':'/home/rashmi/maps/planck_sevem_1024_full_test.fits',
-			'smica_1024_full':'/home/rashmi/maps/planck_smica_1024_full_test.fits'}
-		return dict.get(map_name)
 	
 	
 	def add_nonlinearity(self, signal, signal_min=-0.2):
@@ -116,7 +106,7 @@ class Simulator(object):
 		period_length = self.settings.f_data/self.settings.f_hwp
 		period = np.linspace(0., 2*pl.pi, num = period_length)
 		hwp_angle_array = np.resize(period, int(self.num_data_pts))
-		return coordinates.wrap_to_2pi(hwp_angle_array)
+		return hwp_angle_array
 	
 	def add_hwpss(self, times, signal, hwp_angle):
 		#approximation we are using for now: A1 = 50mK, A2 = 100, A4 = 200. All other coeffs = 0.
@@ -131,7 +121,7 @@ class Simulator(object):
 			test_pointing.print_local_min_max(data_to_plot, 0.00000001, x = times)
 		plt.xlabel('Time (s)')
 		plt.ylabel('K_cmb')
-		plt.title(self.map_name)
+		plt.title(self.settings.map_name)
 	
 	def make_map(self, data, detector_pointing, lat, lon):
 		detector_pointing = list(detector_pointing)

@@ -32,4 +32,14 @@ class SimulatorSettings:
 		self.num_bolos = 1
 		
 		#operational settings
-		self.conduct_test = True 
+		self.conduct_test = False
+		
+		#map settings
+		map_dict = {'commander':'/home/rashmi/maps/planck_commander_1024_full_test.fits',
+				'nilc':'/home/rashmi/maps/planck_nilc_1024_full_test.fits',
+				'sevem':'/home/rashmi/maps/planck_sevem_1024_full_test.fits',
+				'smica':'/home/rashmi/maps/planck_smica_1024_full_test.fits'}
+		self.map_name = 'commander'
+		self.map_filename = map_dict.get(self.map_name)
+
+
