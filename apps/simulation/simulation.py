@@ -64,17 +64,26 @@ class Simulator(object):
 		#this is a basic rotation function. the three bolos are arranged in a triangle with base 0.005 (~50m) & height 0.005 (~50m)
 		#if a fourth bolo is added, it will be at the center of the triangle (the boresight pointing)
 		#a little clunky but I can turn this into a dict later with diff. adjustments depending on the number/arrangement of bolos
-		boresight_pointing = list(boresight_pointing)
-		if bolo_number == 0:
-			boresight_pointing[1] += 0.0025
-		elif bolo_number == 1:
-			boresight_pointing[0] += 0.0025
-			boresight_pointing[1] -= 0.0025
-		elif bolo_number == 2:
-			boresight_pointing[0] -= 0.0025
-			boresight_pointing[1] -= 0.0025
-		boresight_pointing = tuple(boresight_pointing)
 		'''
+		boresight_pointing = list(boresight_pointing)
+		if self.settings.num_bolos == 1:
+			return boresight_pointing
+		elif self.settings.num_bolos == 2:
+			if bolo_number == 0:
+				boresight_pointing[0] -= 0.0025
+			elif bolo_number == 1:
+				boresight_pointing[0] += 0.0025
+		elif self.settings.num_bolos == 3:
+			if bolo_number == 0:
+				boresight_pointing[1] += 0.0025
+			elif bolo_number == 1:
+				boresight_pointing[0] += 0.0025
+				boresight_pointing[1] -= 0.0025
+			elif bolo_number == 2:
+				boresight_pointing[0] -= 0.0025
+				boresight_pointing[1] -= 0.0025
+		boresight_pointing = tuple(boresight_pointing)
+		
 		return boresight_pointing
 	
 	
