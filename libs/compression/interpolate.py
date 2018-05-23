@@ -5,7 +5,7 @@ discreteMax - locations of discrete maxima
 """
 
 import numpy as np
-
+import find_duplicates
 def interp(x, discreteMin, discreteMax):
     """
     takes as input the locations of the discrete minimums and maximums, interpolates to
@@ -13,7 +13,11 @@ def interp(x, discreteMin, discreteMax):
     """
 
     [tMin, tMax] = [discreteMin[:, 0], discreteMax[:, 0]]
-
+    [tMin_dup, tMax_dup] = find_duplicates.find_duplicates(discreteMin,discreteMax)
+    [tMin, tMax] = [list(set(tMin) - set(tMin_dup)), list(set(tMax) - set(tMax_dup))]
+    #print(discreteMin[:,0])
+    #print(tMin_dup)
+    #print(tMin)
     [mincoeff, maxcoeff] = [[], []]
     # get parabolic mins
     lengths = []
@@ -60,7 +64,25 @@ def interp(x, discreteMin, discreteMax):
         [aM, bM, cM] = [maxcoeff[i, 0], maxcoeff[i, 1], maxcoeff[i, 2]]
         [parabolicMax[i, 0], parabolicMax[i, 1]] = [-bM / (2 * aM), -((bM ** 2) / (4 * aM)) + cM]
 
+    count = 0   
+    for i in discreteMin[:,0]:
+        if np.isin(i,tMin_dup):
+            [parabolicMin[count + len(tMin),0] , parabolicMin[count + len(tMin),1]] = [i,x[int(i)]] 
+            count = count + 1
+    
+    count = 0
+    for i in discreteMax[:,0]:
+        if np.isin(i,tMax_dup):
+            [parabolicMax[count + len(tMax),0] , parabolicMax[count + len(tMax),1]] = [i,x[int(i)]]
     # these conditionals tell us whether or not we could extrapolate the
     # beginning and end points as mins or maxs
+    parabolicMin = np.sort(parabolicMin,axis=0)
+    parabolicMax = np.sort(parabolicMax,axis=0)
+    return (parabolicMin, parabolicMax) 
 
-    return (parabolicMin, parabolicMax)
+if __name__ == "__main__":
+    import discreteMinMax
+    noise = open('69.txt','r').read().split('\n')[0:100]
+    noise = [float(i) for i in noise]
+    [discreteMin,discreteMax] = discreteMinMax.discreteMinMax(noise)
+    interp(noise,discreteMin,discreteMax)
