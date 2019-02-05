@@ -11,16 +11,17 @@ def interp(x, discreteMin, discreteMax):
     takes as input the locations of the discrete minimums and maximums, interpolates to
     gain a more precise picture of where the mins and maxs are, then outputs those locations
     """
+    if len(discreteMin) < 1 or len(discreteMax) < 1:
+        return (discreteMin,discreteMax)
 
     [tMin, tMax] = [discreteMin[:, 0], discreteMax[:, 0]]
     [tMin_dup, tMax_dup] = find_duplicates.find_duplicates(discreteMin,discreteMax)
     [tMin, tMax] = [list(set(tMin) - set(tMin_dup)), list(set(tMax) - set(tMax_dup))]
-    #print(discreteMin[:,0])
-    #print(tMin_dup)
-    #print(tMin)
     [mincoeff, maxcoeff] = [[], []]
     # get parabolic mins
-    lengths = []
+    lengths = [] 
+    if len(tMin) < 1 or len(tMax) < 1:
+        return (discreteMin, discreteMax)
     for i in tMin:
         lengths.append(i)
         # get values on opposite sides of the minimum
@@ -62,18 +63,20 @@ def interp(x, discreteMin, discreteMax):
     for i in range(len(maxcoeff)):
         # M denotes maximum coefficient
         [aM, bM, cM] = [maxcoeff[i, 0], maxcoeff[i, 1], maxcoeff[i, 2]]
-        [parabolicMax[i, 0], parabolicMax[i, 1]] = [-bM / (2 * aM), -((bM ** 2) / (4 * aM)) + cM]
+        [parabolicMax[i, 0], parabolicMax[i, 1]] = [-bM / (2 * aM), -((bM ** 2) / (4 * aM)) + cM] 
 
     count = 0   
     for i in discreteMin[:,0]:
         if np.isin(i,tMin_dup):
-            [parabolicMin[count + len(tMin),0] , parabolicMin[count + len(tMin),1]] = [i,x[int(i)]] 
+            parabolicMin[count + len(tMin),0] = i
+            parabolicMin[count + len(tMin),1] = x[int(i)] 
             count = count + 1
-    
     count = 0
     for i in discreteMax[:,0]:
         if np.isin(i,tMax_dup):
-            [parabolicMax[count + len(tMax),0] , parabolicMax[count + len(tMax),1]] = [i,x[int(i)]]
+            parabolicMax[count + len(tMax),0] = i
+            parabolicMax[count + len(tMax),1] = x[int(i)]
+            count = count + 1
     # these conditionals tell us whether or not we could extrapolate the
     # beginning and end points as mins or maxs
     parabolicMin = np.sort(parabolicMin,axis=0)
@@ -82,7 +85,18 @@ def interp(x, discreteMin, discreteMax):
 
 if __name__ == "__main__":
     import discreteMinMax
-    noise = open('69.txt','r').read().split('\n')[0:100]
-    noise = [float(i) for i in noise]
+    #noise = open('69.txt','r').read().split('\n')[0:100]
+    #noise = [float(i) for i in noise]
+    import simulate
+    alpha = 1.0
+    white_noise_sigma = 1.0
+    length_ts = 60
+    f_knee = 2.0
+    sample_rate = 100.0
+    noise = simulate.simulate_noise(alpha, white_noise_sigma,length_ts, f_knee, sample_rate)
     [discreteMin,discreteMax] = discreteMinMax.discreteMinMax(noise)
-    interp(noise,discreteMin,discreteMax)
+    [parabolicMin, parabolicMax] = interp(noise,discreteMin,discreteMax)
+    print(discreteMin)
+    print(discreteMax)
+    print(parabolicMin)
+    print(parabolicMax)

@@ -53,8 +53,10 @@ def discreteMinMax(x):
     #print(discreteMin[:,0])
     discreteMax = np.array(discreteMax)
     discreteMin = np.array(discreteMin)
-    #print(discreteMax[:,0])
-
+    #a = np.concatenate((discreteMin,discreteMax),axis=0)
+    #print(np.sort(a,axis=0))
+    #print(discreteMin)
+    #print(discreteMin[0,1])
     return discreteMin, discreteMax
 
 if __name__ == "__main__":
@@ -64,5 +66,5 @@ if __name__ == "__main__":
     #noise = np.linspace(0,10,5)
     [d_Min,d_Max] = discreteMinMax(noise)
     [dup_Min,dup_Max] = test_duplicate.test_duplicate(d_Min,d_Max)
-    print([d_Min,d_Max])
-    print([dup_Min,dup_Max])
+    #print([d_Min,d_Max])
+    #print([dup_Min,dup_Max])

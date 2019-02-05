@@ -8,55 +8,67 @@ function.
 """
 
 import numpy as np
-
+import math 
 def extrap(x, discreteMin, discreteMax):
     """
     produces two ghost cells on both side of the signal that contain a min and max
     value equal to the first min and max of the signal and the last min and max of
     the signal in order to better extrapolate the first and last points of the signal
     """
-
-    if len(discreteMax) > 0:
-        if x[0] >= discreteMax[0, 1]:
-            # print('first point is maximum')
-            discreteMax = np.flip(discreteMax, 0)
-            discreteMax = np.append(discreteMax, [[0, x[0]]], axis=0)
-            discreteMax = np.flip(discreteMax, 0)
-        if x[-1] >= discreteMax[-1, 1]:
-            # print('end point is maximum')
-            discreteMax = np.append(discreteMax, [[len(x) - 1, x[-1]]], axis=0)
-
-    if len(discreteMin) > 0:
-        if x[0] <= discreteMin[0, 1]:
-            # print('first point is minimum')
-            discreteMin = np.flip(discreteMin, 0)
-            discreteMin = np.append(discreteMin, [[0, x[0]]], axis=0)
-            discreteMin = np.flip(discreteMin, 0)
-            # print(discreteMin)
-        if x[-1] <= discreteMin[-1, 1]:
-            # print('end point is maximum')
-            discreteMin = np.append(discreteMin, [[len(x) - 1, x[-1]]], axis=0)
-
-            # extrapolating beginning of signal
-
-    if discreteMin[0, 0] == 0 and discreteMax[0, 0] == 0:
-        print("First point is both a min or max!")  # IMF is zero at the ends
-    else:
+    #intially we say that the first point of the signal is not an extrema, then we check
+    begin_max = False
+    begin_min = False
+    end_max = False
+    end_min = False
+   
+    dMin = discreteMin
+    dMax = discreteMax
+    if len(discreteMin) == 0 and len(discreteMax) == 0:
+        return (discreteMin, discreteMax)
+    
+    if len(discreteMin) == 0 or len(discreteMax) == 0:
+        return (discreteMin,discreteMax)
+    if len(discreteMax) > 0: #otherwise, create ghost point with first maximum
         reflectedMin = [-discreteMax[0, 0], discreteMin[0, 1]]
         discreteMin = np.flip(discreteMin, 0)
         discreteMin = np.append(discreteMin, [reflectedMin], axis=0)
         discreteMin = np.flip(discreteMin, 0)
-
+    if len(discreteMin) > 0:
         reflectedMax = [-discreteMin[1, 0], discreteMax[0, 1]]
         discreteMax = np.flip(discreteMax, 0)
         discreteMax = np.append(discreteMax, [reflectedMax], axis=0)
         discreteMax = np.flip(discreteMax, 0)
+    if len(discreteMin) <= 1 or len(discreteMax) <= 1:
+        return (discreteMin,discreteMax)
 
-    # extrapolating end of signal
-    if discreteMin[-1, 0] == len(x) - 1 and discreteMax[-1, 0] == len(x) - 1:
-        print("First point is both a min or max!")  # IMF is zero at the ends
-    else:
-        discreteMin = np.append(discreteMin, [[2 * (len(x) - 1) - discreteMax[-1, 0], discreteMin[-1, 1]]], axis=0)
-        discreteMax = np.append(discreteMax, [[2 * (len(x) - 1) - discreteMin[-2, 0], discreteMax[-1, 1]]], axis=0)
-
+     
+    
+    discreteMin = np.append(discreteMin, [[2 * (len(x) - 1) - discreteMax[-1,0], discreteMin[-1,1]]], axis = 0) 
+    discreteMax = np.append(discreteMax, [[2 * (len(x) - 1) - discreteMin[-2, 0], discreteMax[-1, 1]]], axis=0)
+     
+       
+    discreteMin = discreteMin[np.argsort(discreteMin[:,0])]
+    discreteMax = discreteMax[np.argsort(discreteMax[:,0])]
+    
     return (discreteMin, discreteMax)
+
+if __name__ == '__main__':
+    import discreteMinMax
+    import interpolate
+    #noise = open('69.txt','r').read().split('\n')[0:100]
+    #noise = [float(i) for i in noise]
+    import simulate
+    import math
+    alpha = 1.0
+    white_noise_sigma = 3/math.sqrt(12)
+    length_ts = 60
+    f_knee = 2.0
+    sample_rate = 100.0
+    noise = simulate.simulate_noise(alpha, white_noise_sigma,length_ts, f_knee, sample_rate)
+    [discreteMin,discreteMax] = discreteMinMax.discreteMinMax(noise)
+    #[parabolicMin,parabolicMax] = interpolate.interp(noise,discreteMin,discreteMax)
+    [parabolicMin,parabolicMax] = extrap(noise,discreteMin,discreteMax)
+    print(noise)
+    print(parabolicMin)
+    print(parabolicMax)
+        
